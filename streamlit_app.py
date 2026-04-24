@@ -136,10 +136,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# -- Snowflake connection (Streamlit-in-Snowflake uses get_active_session) --
-if "snowpark_session" not in st.session_state:
-    from snowflake.snowpark.context import get_active_session
-    st.session_state.snowpark_session = get_active_session()
+# -- Snowflake connection (container runtime uses st.connection for thread safety) --
+st.session_state.snowpark_session = st.connection("snowflake").session()
 
 # -- Display logo --
 st.image("logo_2026.png", width="stretch")
