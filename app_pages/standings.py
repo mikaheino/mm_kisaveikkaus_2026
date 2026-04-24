@@ -6,6 +6,7 @@ import pandas as pd
 session = st.session_state.snowpark_session
 
 SCHEMA = "MM_KISAVEIKKAUS"
+PREDICTIONS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_PREDICTIONS"
 RESULTS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_RESULTS"
 
 # ── Background image ──────────────────────────────────────────────────────────
@@ -37,27 +38,23 @@ if os.path.exists(_img_path):
 st.title("Standings")
 
 
-def get_players() -> list:
-    """Discover all player prediction tables by naming convention."""
+def email_to_display_name(email: str) -> str:
+    """Convert 'first.last@domain' to 'First Last'."""
+    local = email.split("@")[0]
+    parts = local.replace(".", " ").split()
+    return " ".join(p.capitalize() for p in parts)
+
+
+def get_players() -> list[str]:
+    """Get all players who have submitted predictions."""
     rows = session.sql(
-        f"SHOW TABLES LIKE '%_MM_KISAVEIKKAUS' IN SCHEMA {SCHEMA}"
+        f"SELECT DISTINCT USER_EMAIL FROM {PREDICTIONS_TABLE} ORDER BY USER_EMAIL"
     ).collect()
-    players = []
-    for row in rows:
-        name = row["name"]
-        # Exclude system tables
-        if name in ("MM_KISAVEIKKAUS_RESULTS", "MM_KISAVEIKKAUS_SCHEDULE"):
-            continue
-        # Extract player name: strip the _MM_KISAVEIKKAUS suffix
-        player = name.replace("_MM_KISAVEIKKAUS", "")
-        if player:
-            players.append(player)
-    return sorted(players)
+    return [row["USER_EMAIL"] for row in rows]
 
 
-def compute_player_points(player: str) -> pd.DataFrame:
+def compute_player_points(player_email: str) -> pd.DataFrame:
     """Compute per-match and total points for a player."""
-    table_name = f"{player}_MM_KISAVEIKKAUS"
     sql = f"""
     SELECT
         r.ID,
@@ -76,9 +73,10 @@ def compute_player_points(player: str) -> pd.DataFrame:
                   AND r.HOME_TEAM_GOALS < r.AWAY_TEAM_GOALS) THEN 1
             ELSE 0
         END AS POINTS
-    FROM {SCHEMA}."{table_name}" p
+    FROM {PREDICTIONS_TABLE} p
     INNER JOIN {RESULTS_TABLE} r ON p.ID = r.ID
-    WHERE r.MATCH IS NOT NULL
+    WHERE p.USER_EMAIL = '{player_email}'
+      AND r.MATCH IS NOT NULL
     ORDER BY r.ID
     """
     return session.sql(sql).to_pandas()
@@ -103,14 +101,17 @@ st.caption(f":material/query_stats: Games with results: **{scored_count} / {tota
 # -- Leaderboard --
 st.subheader("Leaderboard")
 
-MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
+MEDALS = {1: "\U0001f947", 2: "\U0001f948", 3: "\U0001f949"}
 
 leaderboard_rows = []
-for player in players:
+for player_email in players:
     try:
-        df = compute_player_points(player)
+        df = compute_player_points(player_email)
         total = int(df["POINTS"].dropna().sum())
-        leaderboard_rows.append({"Player": player.title(), "Points": total})
+        leaderboard_rows.append({
+            "Player": email_to_display_name(player_email),
+            "Points": total,
+        })
     except Exception:
         pass
 
@@ -128,16 +129,19 @@ else:
 st.divider()
 st.subheader("Match Details")
 
-selected_player = st.selectbox(
+# Build display name → email mapping
+player_display_names = [email_to_display_name(e) for e in players]
+email_by_display = dict(zip(player_display_names, players))
+
+selected_display = st.selectbox(
     "Select a player to see their predictions vs results:",
-    options=[p.title() for p in players],
+    options=player_display_names,
 )
 
-if selected_player:
-    player_key = selected_player.upper()
+if selected_display:
+    player_email = email_by_display[selected_display]
     try:
-        detail_df = compute_player_points(player_key)
-        # Rename for display
+        detail_df = compute_player_points(player_email)
         detail_df = detail_df.rename(columns={
             "ID": "#",
             "MATCH": "Match",
@@ -149,4 +153,4 @@ if selected_player:
         })
         st.dataframe(detail_df, width="stretch", hide_index=True)
     except Exception as e:
-        st.error(f"Could not load details for {selected_player}: {e}")
+        st.error(f"Could not load details for {selected_display}: {e}")

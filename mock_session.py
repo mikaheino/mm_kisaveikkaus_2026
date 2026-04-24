@@ -1,10 +1,10 @@
 """
 Mock Snowpark session for local development without a Snowflake connection.
 Provides sample schedule data, fake results for the first two days, and
-in-memory player prediction tables so all UI features can be tested.
+in-memory predictions in a single shared table so all UI features can be tested.
 """
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 from itertools import combinations
 
 # ── Sample schedule ───────────────────────────────────────────────────────────
@@ -48,33 +48,20 @@ RESULTS_DF["HOME_TEAM_GOALS"] = RESULTS_DF["ID"].map(lambda i: _RESULTS.get(i, (
 RESULTS_DF["AWAY_TEAM_GOALS"] = RESULTS_DF["ID"].map(lambda i: _RESULTS.get(i, (None, None))[1])
 RESULTS_DF["MATCH"] = SCHEDULE_DF["MATCH"]
 
-# ── Sample player predictions ─────────────────────────────────────────────────
+# ── Shared predictions table ─────────────────────────────────────────────────
 
-def _make_predictions(seed: int) -> pd.DataFrame:
-    import random
-    rng = random.Random(seed)
-    rows = []
-    for _, row in SCHEDULE_DF.iterrows():
-        rows.append({
-            "ID": row["ID"],
-            "MATCH_DAY": row["MATCH_DAY"],
-            "MATCH": row["MATCH"],
-            "HOME_TEAM_GOALS": rng.randint(0, 5),
-            "AWAY_TEAM_GOALS": rng.randint(0, 5),
-            "INSERTED": "2026-04-20 10:00:00",
-        })
-    return pd.DataFrame(rows)
+MOCK_CURRENT_USER = "test.user@recordlydata.com"
 
-def _partial_predictions(seed: int, complete_days: int) -> pd.DataFrame:
-    """Fill only the first N match days, leave the rest empty."""
+def _make_predictions(email: str, seed: int, complete_days: int | None = None) -> pd.DataFrame:
     import random
     rng = random.Random(seed)
     dates = sorted(SCHEDULE_DF["MATCH_DAY"].unique())
-    done_dates = set(dates[:complete_days])
+    done_dates = set(dates[:complete_days]) if complete_days else set(dates)
     rows = []
     for _, row in SCHEDULE_DF.iterrows():
         filled = row["MATCH_DAY"] in done_dates
         rows.append({
+            "USER_EMAIL": email,
             "ID": row["ID"],
             "MATCH_DAY": row["MATCH_DAY"],
             "MATCH": row["MATCH"],
@@ -84,17 +71,21 @@ def _partial_predictions(seed: int, complete_days: int) -> pd.DataFrame:
         })
     return pd.DataFrame(rows)
 
-# Pre-populated player tables
-_PLAYER_TABLES: dict[str, pd.DataFrame] = {
-    "MATTI_MM_KISAVEIKKAUS": _partial_predictions(42, complete_days=2),  # first 2 days filled
-    "LIISA_MM_KISAVEIKKAUS": _make_predictions(7),                        # all days filled
-}
+# Pre-populated predictions
+_PREDICTIONS_DF = pd.concat([
+    _make_predictions("matti.test@recordlydata.com", 42, complete_days=2),
+    _make_predictions("liisa.test@recordlydata.com", 7),
+], ignore_index=True)
 
 # ── Mock row / result helpers ─────────────────────────────────────────────────
 
 class _MockRow(dict):
     """Dict-like row so row["column"] access works like Snowpark Row."""
-    pass
+    def __getitem__(self, key):
+        # Support both string keys and integer index (positional)
+        if isinstance(key, int):
+            return list(self.values())[key]
+        return super().__getitem__(key)
 
 class _MockResult:
     def __init__(self, df: pd.DataFrame):
@@ -113,16 +104,20 @@ class MockSession:
     """Mimics the subset of Snowpark Session API used by the app."""
 
     def sql(self, query: str) -> _MockResult:
+        global _PREDICTIONS_DF
         q = query.upper()
 
-        # ── SHOW TABLES ──────────────────────────────────────────────────────
+        # ── CURRENT_USER ────────────────────────────────────────────────
+        if "CURRENT_USER" in q:
+            return _MockResult(pd.DataFrame({"CURRENT_USER()": [MOCK_CURRENT_USER]}))
+
+        # ── SHOW TABLES ─────────────────────────────────────────────────
         if "SHOW TABLES" in q:
-            table_names = list(_PLAYER_TABLES.keys()) + [
+            table_names = [
                 "MM_KISAVEIKKAUS_RESULTS",
                 "MM_KISAVEIKKAUS_SCHEDULE",
+                "MM_KISAVEIKKAUS_PREDICTIONS",
             ]
-            # Respect LIKE filter if present (simple substring match)
-            like_val = ""
             if "LIKE '" in query:
                 like_val = query.split("LIKE '")[1].split("'")[0]
                 like_val = like_val.replace("%", "").upper()
@@ -130,7 +125,43 @@ class MockSession:
             df = pd.DataFrame({"name": table_names})
             return _MockResult(df)
 
-        # ── COUNT queries (must come before plain table matches) ─────────────
+        # ── DELETE predictions ──────────────────────────────────────────
+        if "DELETE" in q and "MM_KISAVEIKKAUS_PREDICTIONS" in q:
+            email = query.split("'")[1].lower()
+            _PREDICTIONS_DF = _PREDICTIONS_DF[
+                _PREDICTIONS_DF["USER_EMAIL"] != email
+            ].reset_index(drop=True)
+            return _MockResult(pd.DataFrame({"rows_deleted": [0]}))
+
+        # ── INSERT predictions ──────────────────────────────────────────
+        if "INSERT" in q and "MM_KISAVEIKKAUS_PREDICTIONS" in q:
+            # Parse VALUES from the insert statement
+            values_str = query.split("VALUES")[1]
+            import re
+            tuples = re.findall(r"\(([^)]+)\)", values_str)
+            new_rows = []
+            for t in tuples:
+                parts = [p.strip().strip("'") for p in t.split(",")]
+                new_rows.append({
+                    "USER_EMAIL": parts[0],
+                    "ID": int(parts[1]),
+                    "MATCH_DAY": parts[2],
+                    "MATCH": parts[3],
+                    "HOME_TEAM_GOALS": int(parts[4]),
+                    "AWAY_TEAM_GOALS": int(parts[5]),
+                    "INSERTED": parts[6],
+                })
+            _PREDICTIONS_DF = pd.concat(
+                [_PREDICTIONS_DF, pd.DataFrame(new_rows)], ignore_index=True
+            )
+            return _MockResult(pd.DataFrame({"rows_inserted": [len(new_rows)]}))
+
+        # ── DISTINCT USER_EMAIL ─────────────────────────────────────────
+        if "DISTINCT" in q and "USER_EMAIL" in q:
+            emails = sorted(_PREDICTIONS_DF["USER_EMAIL"].unique())
+            return _MockResult(pd.DataFrame({"USER_EMAIL": emails}))
+
+        # ── COUNT queries ───────────────────────────────────────────────
         if "COUNT" in q and "MM_KISAVEIKKAUS_RESULTS" in q:
             n = int(RESULTS_DF["HOME_TEAM_GOALS"].notna().sum())
             return _MockResult(pd.DataFrame({"N": [n]}))
@@ -138,52 +169,57 @@ class MockSession:
         if "COUNT" in q and "MM_KISAVEIKKAUS_SCHEDULE" in q:
             return _MockResult(pd.DataFrame({"N": [len(SCHEDULE_DF)]}))
 
-        # ── Schedule only ────────────────────────────────────────────────────
+        # ── Schedule ────────────────────────────────────────────────────
         if "MM_KISAVEIKKAUS_SCHEDULE" in q:
             return _MockResult(SCHEDULE_DF[["ID", "MATCH_DAY", "MATCH"]].copy())
 
-        # ── Player points JOIN (standings) — must come before plain results ──
-        for tname, tdf in _PLAYER_TABLES.items():
-            if tname in q and "MM_KISAVEIKKAUS_RESULTS" in q:
-                merged = tdf[["ID", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]].merge(
-                    RESULTS_DF[["ID", "MATCH", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]],
-                    on="ID", suffixes=("_PRED", "_RESULT"),
-                )
-                def _pts(row):
-                    rh, ra = row["HOME_TEAM_GOALS_RESULT"], row["AWAY_TEAM_GOALS_RESULT"]
-                    ph, pa = row["HOME_TEAM_GOALS_PRED"], row["AWAY_TEAM_GOALS_PRED"]
-                    if pd.isna(rh):
-                        return None
-                    if ph == rh and pa == ra:
-                        return 3
-                    if (ph > pa and rh > ra) or (ph < pa and rh < ra):
-                        return 1
-                    return 0
-                merged["POINTS"] = merged.apply(_pts, axis=1)
-                result = merged.rename(columns={
-                    "HOME_TEAM_GOALS_RESULT": "RESULT_HOME",
-                    "AWAY_TEAM_GOALS_RESULT": "RESULT_AWAY",
-                    "HOME_TEAM_GOALS_PRED": "PRED_HOME",
-                    "AWAY_TEAM_GOALS_PRED": "PRED_AWAY",
-                })[["ID", "MATCH", "RESULT_HOME", "RESULT_AWAY", "PRED_HOME", "PRED_AWAY", "POINTS"]]
-                return _MockResult(result)
+        # ── Player points JOIN ──────────────────────────────────────────
+        if "MM_KISAVEIKKAUS_PREDICTIONS" in q and "MM_KISAVEIKKAUS_RESULTS" in q:
+            # Extract email from WHERE clause
+            email = query.split("'")[1].lower() if "'" in query else MOCK_CURRENT_USER
+            player_preds = _PREDICTIONS_DF[
+                _PREDICTIONS_DF["USER_EMAIL"] == email
+            ][["ID", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]]
 
-        # ── Results table ────────────────────────────────────────────────────
+            merged = player_preds.merge(
+                RESULTS_DF[["ID", "MATCH", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]],
+                on="ID", suffixes=("_PRED", "_RESULT"),
+            )
+            def _pts(row):
+                rh, ra = row["HOME_TEAM_GOALS_RESULT"], row["AWAY_TEAM_GOALS_RESULT"]
+                ph, pa = row["HOME_TEAM_GOALS_PRED"], row["AWAY_TEAM_GOALS_PRED"]
+                if pd.isna(rh):
+                    return None
+                if ph == rh and pa == ra:
+                    return 3
+                if (ph > pa and rh > ra) or (ph < pa and rh < ra):
+                    return 1
+                return 0
+            merged["POINTS"] = merged.apply(_pts, axis=1)
+            result = merged.rename(columns={
+                "HOME_TEAM_GOALS_RESULT": "RESULT_HOME",
+                "AWAY_TEAM_GOALS_RESULT": "RESULT_AWAY",
+                "HOME_TEAM_GOALS_PRED": "PRED_HOME",
+                "AWAY_TEAM_GOALS_PRED": "PRED_AWAY",
+            })[["ID", "MATCH", "RESULT_HOME", "RESULT_AWAY", "PRED_HOME", "PRED_AWAY", "POINTS"]]
+            return _MockResult(result)
+
+        # ── Select from predictions (user-filtered) ─────────────────────
+        if "MM_KISAVEIKKAUS_PREDICTIONS" in q:
+            email = query.split("'")[1].lower() if "'" in query else MOCK_CURRENT_USER
+            filtered = _PREDICTIONS_DF[
+                _PREDICTIONS_DF["USER_EMAIL"] == email
+            ][["ID", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]]
+            return _MockResult(filtered.copy())
+
+        # ── Results table ───────────────────────────────────────────────
         if "MM_KISAVEIKKAUS_RESULTS" in q:
             return _MockResult(RESULTS_DF.copy())
-
-        # ── Player prediction table ──────────────────────────────────────────
-        for tname, tdf in _PLAYER_TABLES.items():
-            if tname in q.upper():
-                cols = ["ID", "MATCH_DAY", "MATCH", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]
-                if "HOME_TEAM_GOALS" in q and "AWAY_TEAM_GOALS" in q and "MATCH_DAY" not in q:
-                    cols = ["ID", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]
-                return _MockResult(tdf[[c for c in cols if c in tdf.columns]].copy())
 
         # Fallback: empty result
         return _MockResult(pd.DataFrame())
 
     def write_pandas(self, df: pd.DataFrame, table_name: str, **kwargs):
-        """Store written predictions in memory."""
-        _PLAYER_TABLES[table_name.upper()] = df.copy()
+        """Legacy write_pandas — no longer used but kept for compatibility."""
+        global _PREDICTIONS_DF
         print(f"[mock] write_pandas → {table_name} ({len(df)} rows)")
