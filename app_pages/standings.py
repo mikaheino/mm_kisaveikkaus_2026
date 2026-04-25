@@ -46,6 +46,9 @@ if os.path.exists(_img_path):
             pointer-events: none;
             z-index: 0;
         }}
+        div[data-baseweb="select"] span {{
+            color: #ffffff !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
