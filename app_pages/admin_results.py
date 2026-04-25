@@ -92,30 +92,41 @@ with st.form("results_form"):
             hdr3.caption("Away")
             for _, row in day_df.iterrows():
                 gid = int(row["ID"])
-                h_def = int(row["HOME_TEAM_GOALS"]) if not pd.isna(row["HOME_TEAM_GOALS"]) else 0
-                a_def = int(row["AWAY_TEAM_GOALS"]) if not pd.isna(row["AWAY_TEAM_GOALS"]) else 0
+                h_def = str(int(row["HOME_TEAM_GOALS"])) if not pd.isna(row["HOME_TEAM_GOALS"]) else ""
+                a_def = str(int(row["AWAY_TEAM_GOALS"])) if not pd.isna(row["AWAY_TEAM_GOALS"]) else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
                 c1.write(row["MATCH"])
-                home = c2.number_input("H", min_value=0, max_value=20, step=1,
-                                       value=h_def, key=f"rh_{gid}",
-                                       label_visibility="collapsed")
-                away = c3.number_input("A", min_value=0, max_value=20, step=1,
-                                       value=a_def, key=f"ra_{gid}",
-                                       label_visibility="collapsed")
+                home = c2.text_input("H", value=h_def, key=f"rh_{gid}",
+                                     label_visibility="collapsed")
+                away = c3.text_input("A", value=a_def, key=f"ra_{gid}",
+                                     label_visibility="collapsed")
                 game_inputs[gid] = (home, away)
 
     submit = st.form_submit_button("Save results", type="primary")
 
 # ── Handle submission ─────────────────────────────────────────────────────────
 if submit:
-    try:
-        for gid, (home, away) in game_inputs.items():
-            session.sql(
-                f"UPDATE {RESULTS_TABLE} "
-                f"SET HOME_TEAM_GOALS = {home}, AWAY_TEAM_GOALS = {away} "
-                f"WHERE ID = {gid}"
-            ).collect()
-        st.success(f"{len(game_inputs)} result(s) saved.")
-        st.rerun()
-    except Exception as e:
-        st.error(f"Error saving results: {e}")
+    errors = []
+    parsed: dict[int, tuple] = {}
+    for gid, (h_str, a_str) in game_inputs.items():
+        try:
+            h, a = int(h_str.strip()), int(a_str.strip())
+            if not (0 <= h <= 20 and 0 <= a <= 20):
+                raise ValueError
+            parsed[gid] = (h, a)
+        except (ValueError, AttributeError):
+            pass  # skip unfilled rows silently for admin
+    if not parsed:
+        st.warning("No valid results to save — enter scores as numbers 0–20.")
+    else:
+        try:
+            for gid, (home, away) in parsed.items():
+                session.sql(
+                    f"UPDATE {RESULTS_TABLE} "
+                    f"SET HOME_TEAM_GOALS = {home}, AWAY_TEAM_GOALS = {away} "
+                    f"WHERE ID = {gid}"
+                ).collect()
+            st.success(f"{len(parsed)} result(s) saved.")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error saving results: {e}")

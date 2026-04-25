@@ -118,16 +118,14 @@ with st.form("prediction_form"):
             hdr3.caption("Away")
             for _, row in day_df.iterrows():
                 gid = int(row["ID"])
-                h_def = int(existing_preds[gid][0]) if gid in existing_preds and existing_preds[gid][0] is not None else 0
-                a_def = int(existing_preds[gid][1]) if gid in existing_preds and existing_preds[gid][1] is not None else 0
+                h_def = str(int(existing_preds[gid][0])) if gid in existing_preds and existing_preds[gid][0] is not None else ""
+                a_def = str(int(existing_preds[gid][1])) if gid in existing_preds and existing_preds[gid][1] is not None else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
                 c1.write(row["MATCH"])
-                home = c2.number_input("H", min_value=0, max_value=20, step=1,
-                                       value=h_def, key=f"h_{gid}",
-                                       label_visibility="collapsed")
-                away = c3.number_input("A", min_value=0, max_value=20, step=1,
-                                       value=a_def, key=f"a_{gid}",
-                                       label_visibility="collapsed")
+                home = c2.text_input("H", value=h_def, key=f"h_{gid}",
+                                     label_visibility="collapsed")
+                away = c3.text_input("A", value=a_def, key=f"a_{gid}",
+                                     label_visibility="collapsed")
                 all_inputs[gid] = (home, away)
 
     submit_label = "Save predictions" if is_new else "Update predictions"
@@ -136,35 +134,50 @@ with st.form("prediction_form"):
 # ── Handle submission ────────────────────────────────────────────────────────
 
 if submit:
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    rows_out = []
-    for gid, (home, away) in all_inputs.items():
-        srow = schedule_df[schedule_df["ID"] == gid].iloc[0]
-        rows_out.append({
-            "USER_EMAIL": user_email,
-            "ID": gid,
-            "MATCH_DAY": srow["MATCH_DAY"],
-            "MATCH": srow["MATCH"],
-            "HOME_TEAM_GOALS": home,
-            "AWAY_TEAM_GOALS": away,
-        })
-    final_df = pd.DataFrame(rows_out).sort_values("ID").reset_index(drop=True)
-    try:
-        session.sql(
-            f"DELETE FROM {PREDICTIONS_TABLE} WHERE USER_EMAIL = '{user_email}'"
-        ).collect()
-        values_parts = [
-            f"('{r['USER_EMAIL']}', {int(r['ID'])}, '{r['MATCH_DAY']}', "
-            f"'{r['MATCH']}', {int(r['HOME_TEAM_GOALS'])}, "
-            f"{int(r['AWAY_TEAM_GOALS'])}, '{now}')"
-            for _, r in final_df.iterrows()
-        ]
-        session.sql(
-            f"INSERT INTO {PREDICTIONS_TABLE} "
-            f"(USER_EMAIL, ID, MATCH_DAY, MATCH, HOME_TEAM_GOALS, AWAY_TEAM_GOALS, INSERTED) "
-            f"VALUES {', '.join(values_parts)}"
-        ).collect()
-        st.success(f"Predictions for **{display_name}** saved!")
-        st.rerun()
-    except Exception as e:
-        st.error(f"Error saving predictions: {e}")
+    # Validate all inputs are integers 0-20
+    errors = []
+    parsed: dict[int, tuple] = {}
+    for gid, (h_str, a_str) in all_inputs.items():
+        try:
+            h, a = int(h_str.strip()), int(a_str.strip())
+            if not (0 <= h <= 20 and 0 <= a <= 20):
+                raise ValueError
+            parsed[gid] = (h, a)
+        except (ValueError, AttributeError):
+            srow = schedule_df[schedule_df["ID"] == gid].iloc[0]
+            errors.append(srow["MATCH"])
+    if errors:
+        st.error(f"Invalid or missing scores for: {', '.join(errors)}")
+    else:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        rows_out = []
+        for gid, (home, away) in parsed.items():
+            srow = schedule_df[schedule_df["ID"] == gid].iloc[0]
+            rows_out.append({
+                "USER_EMAIL": user_email,
+                "ID": gid,
+                "MATCH_DAY": srow["MATCH_DAY"],
+                "MATCH": srow["MATCH"],
+                "HOME_TEAM_GOALS": home,
+                "AWAY_TEAM_GOALS": away,
+            })
+        final_df = pd.DataFrame(rows_out).sort_values("ID").reset_index(drop=True)
+        try:
+            session.sql(
+                f"DELETE FROM {PREDICTIONS_TABLE} WHERE USER_EMAIL = '{user_email}'"
+            ).collect()
+            values_parts = [
+                f"('{r['USER_EMAIL']}', {int(r['ID'])}, '{r['MATCH_DAY']}', "
+                f"'{r['MATCH']}', {int(r['HOME_TEAM_GOALS'])}, "
+                f"{int(r['AWAY_TEAM_GOALS'])}, '{now}')"
+                for _, r in final_df.iterrows()
+            ]
+            session.sql(
+                f"INSERT INTO {PREDICTIONS_TABLE} "
+                f"(USER_EMAIL, ID, MATCH_DAY, MATCH, HOME_TEAM_GOALS, AWAY_TEAM_GOALS, INSERTED) "
+                f"VALUES {', '.join(values_parts)}"
+            ).collect()
+            st.success(f"Predictions for **{display_name}** saved!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error saving predictions: {e}")
