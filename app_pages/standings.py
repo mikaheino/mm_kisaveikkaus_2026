@@ -112,7 +112,7 @@ scored_count = session.sql(
 total_games = session.sql(
     "SELECT COUNT(*) AS N FROM MM_KISAVEIKKAUS.MM_KISAVEIKKAUS_SCHEDULE"
 ).collect()[0]["N"]
-st.caption(f":material/query_stats: Games with results: **{scored_count} / {total_games}**")
+st.caption(f"Games with results: **{scored_count} / {total_games}**")
 
 # -- Leaderboard --
 st.subheader("Leaderboard")
@@ -168,6 +168,7 @@ if selected_display:
             "POINTS": "Points",
         })
         detail_df["Match"] = detail_df["Match"].apply(flagged)
+        detail_df = detail_df.set_index("#")
         st.dataframe(detail_df, use_container_width=True)
     except Exception as e:
         st.error(f"Could not load details for {selected_display}: {e}")
