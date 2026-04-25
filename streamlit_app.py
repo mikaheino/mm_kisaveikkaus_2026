@@ -148,7 +148,7 @@ st.session_state.user_email = st.session_state.snowpark_session.sql(
 ).collect()[0][0].lower()
 
 # -- Display logo --
-st.image("logo_2026.png", width="stretch")
+st.image("logo_2026.png", use_container_width=True)
 
 # -- Multi-page navigation using st.navigation + st.Page --
 _ADMIN_EMAILS = {

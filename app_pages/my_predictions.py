@@ -125,7 +125,7 @@ with st.form("prediction_form"):
             edited = st.data_editor(
                 edit_df,
                 key=f"editor_{user_email}_{date_key}",
-                width="stretch",
+                use_container_width=True,
                 num_rows="fixed",
                 disabled=["ID", "MATCH"],
                 column_config={

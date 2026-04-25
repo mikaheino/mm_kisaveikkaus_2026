@@ -121,7 +121,7 @@ if leaderboard_rows:
     leaderboard.index = leaderboard.index + 1
     leaderboard.index.name = "Rank"
     leaderboard.insert(0, "", leaderboard.index.map(lambda r: MEDALS.get(r, "")))
-    st.dataframe(leaderboard, width="stretch")
+    st.dataframe(leaderboard, use_container_width=True)
 else:
     st.info("No results available yet to compute standings.")
 
@@ -151,6 +151,6 @@ if selected_display:
             "PRED_AWAY": "Pred Away",
             "POINTS": "Points",
         })
-        st.dataframe(detail_df, width="stretch", hide_index=True)
+        st.dataframe(detail_df, use_container_width=True, hide_index=True)
     except Exception as e:
         st.error(f"Could not load details for {selected_display}: {e}")
