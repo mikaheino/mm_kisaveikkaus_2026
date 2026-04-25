@@ -45,6 +45,23 @@ if user_email not in ADMIN_EMAILS:
 session = st.session_state.snowpark_session
 SCHEMA = "MM_KISAVEIKKAUS"
 RESULTS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_RESULTS"
+
+_FLAGS = {
+    "Austria": "🇦🇹", "Canada": "🇨🇦", "Czech Republic": "🇨🇿",
+    "Denmark": "🇩🇰", "Finland": "🇫🇮", "Germany": "🇩🇪",
+    "Great Britain": "🇬🇧", "Hungary": "🇭🇺", "Italy": "🇮🇹",
+    "Latvia": "🇱🇻", "Norway": "🇳🇴", "Slovakia": "🇸🇰",
+    "Slovenia": "🇸🇮", "Sweden": "🇸🇪", "Switzerland": "🇨🇭",
+    "United States": "🇺🇸",
+}
+
+def flagged(match: str) -> str:
+    parts = match.split(" vs ")
+    if len(parts) == 2:
+        h, a = parts[0].strip(), parts[1].strip()
+        return f"{_FLAGS.get(h, '')} {h} vs {_FLAGS.get(a, '')} {a}"
+    return match
+
 SCHEDULE_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_SCHEDULE"
 
 st.title("Admin — Enter Results")
@@ -95,7 +112,7 @@ with st.form("results_form"):
                 h_def = str(int(row["HOME_TEAM_GOALS"])) if not pd.isna(row["HOME_TEAM_GOALS"]) else ""
                 a_def = str(int(row["AWAY_TEAM_GOALS"])) if not pd.isna(row["AWAY_TEAM_GOALS"]) else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
-                c1.write(row["MATCH"])
+                c1.write(flagged(row["MATCH"]))
                 home = c2.text_input("H", value=h_def, key=f"rh_{gid}",
                                      label_visibility="collapsed")
                 away = c3.text_input("A", value=a_def, key=f"ra_{gid}",

@@ -9,6 +9,22 @@ SCHEMA = "MM_KISAVEIKKAUS"
 PREDICTIONS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_PREDICTIONS"
 RESULTS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_RESULTS"
 
+_FLAGS = {
+    "Austria": "🇦🇹", "Canada": "🇨🇦", "Czech Republic": "🇨🇿",
+    "Denmark": "🇩🇰", "Finland": "🇫🇮", "Germany": "🇩🇪",
+    "Great Britain": "🇬🇧", "Hungary": "🇭🇺", "Italy": "🇮🇹",
+    "Latvia": "🇱🇻", "Norway": "🇳🇴", "Slovakia": "🇸🇰",
+    "Slovenia": "🇸🇮", "Sweden": "🇸🇪", "Switzerland": "🇨🇭",
+    "United States": "🇺🇸",
+}
+
+def flagged(match: str) -> str:
+    parts = match.split(" vs ")
+    if len(parts) == 2:
+        h, a = parts[0].strip(), parts[1].strip()
+        return f"{_FLAGS.get(h, '')} {h} vs {_FLAGS.get(a, '')} {a}"
+    return match
+
 # ── Background image ──────────────────────────────────────────────────────────
 _img_path = os.path.join(os.path.dirname(__file__), "..", "saku-koivu.jpg")
 if os.path.exists(_img_path):
@@ -151,6 +167,7 @@ if selected_display:
             "PRED_AWAY": "Pred Away",
             "POINTS": "Points",
         })
+        detail_df["Match"] = detail_df["Match"].apply(flagged)
         st.dataframe(detail_df, use_container_width=True, hide_index=True)
     except Exception as e:
         st.error(f"Could not load details for {selected_display}: {e}")

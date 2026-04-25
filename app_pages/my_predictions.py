@@ -34,6 +34,22 @@ session = st.session_state.snowpark_session
 SCHEMA = "MM_KISAVEIKKAUS"
 PREDICTIONS_TABLE = f"{SCHEMA}.MM_KISAVEIKKAUS_PREDICTIONS"
 
+_FLAGS = {
+    "Austria": "🇦🇹", "Canada": "🇨🇦", "Czech Republic": "🇨🇿",
+    "Denmark": "🇩🇰", "Finland": "🇫🇮", "Germany": "🇩🇪",
+    "Great Britain": "🇬🇧", "Hungary": "🇭🇺", "Italy": "🇮🇹",
+    "Latvia": "🇱🇻", "Norway": "🇳🇴", "Slovakia": "🇸🇰",
+    "Slovenia": "🇸🇮", "Sweden": "🇸🇪", "Switzerland": "🇨🇭",
+    "United States": "🇺🇸",
+}
+
+def flagged(match: str) -> str:
+    parts = match.split(" vs ")
+    if len(parts) == 2:
+        h, a = parts[0].strip(), parts[1].strip()
+        return f"{_FLAGS.get(h, '')} {h} vs {_FLAGS.get(a, '')} {a}"
+    return match
+
 
 def email_to_display_name(email: str) -> str:
     """Convert 'first.last@domain' to 'First Last'."""
@@ -121,7 +137,7 @@ with st.form("prediction_form"):
                 h_def = str(int(existing_preds[gid][0])) if gid in existing_preds and existing_preds[gid][0] is not None else ""
                 a_def = str(int(existing_preds[gid][1])) if gid in existing_preds and existing_preds[gid][1] is not None else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
-                c1.write(row["MATCH"])
+                c1.write(flagged(row["MATCH"]))
                 home = c2.text_input("H", value=h_def, key=f"h_{gid}",
                                      label_visibility="collapsed")
                 away = c3.text_input("A", value=a_def, key=f"a_{gid}",
