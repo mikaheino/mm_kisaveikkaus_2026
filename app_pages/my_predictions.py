@@ -194,6 +194,6 @@ if submit:
                 f"VALUES {', '.join(values_parts)}"
             ).collect()
             st.success(f"Predictions for **{display_name}** saved!")
-            st.rerun()
+            st.experimental_rerun()
         except Exception as e:
             st.error(f"Error saving predictions: {e}")

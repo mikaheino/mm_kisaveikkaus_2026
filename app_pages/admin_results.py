@@ -144,6 +144,6 @@ if submit:
                     f"WHERE ID = {gid}"
                 ).collect()
             st.success(f"{len(parsed)} result(s) saved.")
-            st.rerun()
+            st.experimental_rerun()
         except Exception as e:
             st.error(f"Error saving results: {e}")
