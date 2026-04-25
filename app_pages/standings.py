@@ -168,6 +168,6 @@ if selected_display:
             "POINTS": "Points",
         })
         detail_df["Match"] = detail_df["Match"].apply(flagged)
-        st.dataframe(detail_df, use_container_width=True, hide_index=True)
+        st.dataframe(detail_df, use_container_width=True)
     except Exception as e:
         st.error(f"Could not load details for {selected_display}: {e}")
