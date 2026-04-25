@@ -3,6 +3,7 @@ import os
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from trivia import MATCH_TRIVIA
 
 # ── Background image ──────────────────────────────────────────────────────────
 _img_path = os.path.join(os.path.dirname(__file__), "..", "ioag9w7poe8ayrodgmlc.webp")
@@ -138,6 +139,9 @@ with st.form("prediction_form"):
                 a_def = str(int(existing_preds[gid][1])) if gid in existing_preds and existing_preds[gid][1] is not None else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
                 c1.write(flagged(row["MATCH"]))
+                fact = MATCH_TRIVIA.get(row["MATCH"], "")
+                if fact:
+                    c1.caption(fact)
                 home = c2.text_input("H", value=h_def, key=f"h_{gid}",
                                      label_visibility="collapsed")
                 away = c3.text_input("A", value=a_def, key=f"a_{gid}",
