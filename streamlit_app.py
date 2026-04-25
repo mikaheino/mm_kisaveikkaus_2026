@@ -153,23 +153,31 @@ st.session_state.user_email = st.session_state.snowpark_session.sql(
 # -- Display logo --
 st.image("logo_2026.png")
 
-# -- Multi-page navigation using st.navigation + st.Page --
+# -- Multi-page navigation (sidebar, compatible with all SiS Streamlit versions) --
+import importlib
+import sys
+
 _ADMIN_EMAILS = {
     "mika.heino@recordlydata.com",
     "mikko.sulonen@recordlydata.com",
     "marko.laitinen@recordlydata.com",
 }
 
-_pages = [
-    st.Page("app_pages/my_predictions.py", title="My Predictions", icon=":material/sports_hockey:"),
-    st.Page("app_pages/standings.py", title="Standings", icon=":material/emoji_events:"),
-    st.Page("app_pages/rules.py", title="Rules", icon=":material/menu_book:"),
-]
+_page_titles = ["My Predictions", "Standings", "Rules"]
 if st.session_state.get("user_email") in _ADMIN_EMAILS:
-    _pages.append(
-        st.Page("app_pages/admin_results.py", title="Admin: Results", icon=":material/admin_panel_settings:")
-    )
+    _page_titles.append("Admin: Results")
 
-pages = st.navigation(_pages, position="top")
+_page_modules = {
+    "My Predictions": "app_pages.my_predictions",
+    "Standings":      "app_pages.standings",
+    "Rules":          "app_pages.rules",
+    "Admin: Results": "app_pages.admin_results",
+}
 
-pages.run()
+selected = st.sidebar.radio("", _page_titles, label_visibility="collapsed")
+
+_mod = _page_modules[selected]
+if _mod in sys.modules:
+    importlib.reload(sys.modules[_mod])
+else:
+    importlib.import_module(_mod)
