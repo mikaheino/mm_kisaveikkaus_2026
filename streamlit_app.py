@@ -134,6 +134,19 @@ st.markdown(
 
     /* ── Logo image full-width ── */
     [data-testid="stImage"] img { width: 100% !important; max-width: 100%; }
+
+    /* ── Horizontal nav radio ── */
+    div[role="radiogroup"] { gap: 0.5rem; }
+    div[role="radiogroup"] label {
+        padding: 6px 16px !important;
+        border: 1px solid rgba(255,255,255,0.25) !important;
+        border-radius: 6px !important;
+        cursor: pointer;
+    }
+    div[role="radiogroup"] label:has(input:checked) {
+        border-color: #ADFF2F !important;
+        color: #ADFF2F !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -174,7 +187,7 @@ _page_modules = {
     "Admin: Results": "app_pages.admin_results",
 }
 
-selected = st.sidebar.radio("", _page_titles, label_visibility="collapsed")
+selected = st.radio("", _page_titles, horizontal=True, label_visibility="collapsed")
 
 _mod = _page_modules[selected]
 if _mod in sys.modules:

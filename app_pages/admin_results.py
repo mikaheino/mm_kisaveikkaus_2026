@@ -71,7 +71,7 @@ with col2:
 
 # ── Grouped editors by match day ──────────────────────────────────────────────
 dates = sorted(data_df["MATCH_DAY"].unique())
-day_editors: dict[str, dict] = {}
+game_inputs: dict[int, tuple] = {}  # gid -> (home, away)
 
 with st.form("results_form"):
     for date in dates:
@@ -87,65 +87,35 @@ with st.form("results_form"):
         )
 
         with st.expander(label, expanded=not day_complete):
-            edit_df = pd.DataFrame({
-                "ID": day_ids,
-                "MATCH": day_df["MATCH"].tolist(),
-                "Home Goals": [
-                    None if pd.isna(v) else int(v)
-                    for v in day_df["HOME_TEAM_GOALS"].tolist()
-                ],
-                "Away Goals": [
-                    None if pd.isna(v) else int(v)
-                    for v in day_df["AWAY_TEAM_GOALS"].tolist()
-                ],
-            })
+            hdr1, hdr2, hdr3 = st.columns([5, 1, 1])
+            hdr2.caption("Home")
+            hdr3.caption("Away")
+            for _, row in day_df.iterrows():
+                gid = int(row["ID"])
+                h_def = int(row["HOME_TEAM_GOALS"]) if not pd.isna(row["HOME_TEAM_GOALS"]) else 0
+                a_def = int(row["AWAY_TEAM_GOALS"]) if not pd.isna(row["AWAY_TEAM_GOALS"]) else 0
+                c1, c2, c3 = st.columns([5, 1, 1])
+                c1.write(row["MATCH"])
+                home = c2.number_input("H", min_value=0, max_value=20, step=1,
+                                       value=h_def, key=f"rh_{gid}",
+                                       label_visibility="collapsed")
+                away = c3.number_input("A", min_value=0, max_value=20, step=1,
+                                       value=a_def, key=f"ra_{gid}",
+                                       label_visibility="collapsed")
+                game_inputs[gid] = (home, away)
 
-            edited = st.data_editor(
-                edit_df,
-                key=f"results_{str(date).replace('-', '_')}",
-                num_rows="fixed",
-                disabled=["ID", "MATCH"],
-                column_config={
-                    "ID": None,
-                    "MATCH": st.column_config.TextColumn("Match"),
-                    "Home Goals": st.column_config.NumberColumn(
-                        "Home Goals", min_value=0, max_value=20, step=1
-                    ),
-                    "Away Goals": st.column_config.NumberColumn(
-                        "Away Goals", min_value=0, max_value=20, step=1
-                    ),
-                },
-                hide_index=True,
-            )
-            day_editors[str(date)] = {"edited": edited, "ids": day_ids}
-
-    submit = st.form_submit_button("Save results", type="primary", icon=":material/save:")
+    submit = st.form_submit_button("Save results", type="primary")
 
 # ── Handle submission ─────────────────────────────────────────────────────────
 if submit:
-    updates = []
-    for date_str, entry in day_editors.items():
-        edited_df = entry["edited"]
-        ids = entry["ids"]
-        for idx, gid in enumerate(ids):
-            erow = edited_df.iloc[idx]
-            home = erow["Home Goals"]
-            away = erow["Away Goals"]
-            # Only include rows where both values are filled
-            if not pd.isna(home) and not pd.isna(away):
-                updates.append((gid, int(home), int(away)))
-
-    if not updates:
-        st.warning("No complete results to save — fill in both home and away goals for each game.")
-    else:
-        try:
-            for gid, home, away in updates:
-                session.sql(
-                    f"UPDATE {RESULTS_TABLE} "
-                    f"SET HOME_TEAM_GOALS = {home}, AWAY_TEAM_GOALS = {away} "
-                    f"WHERE ID = {gid}"
-                ).collect()
-            st.success(f":material/check_circle: {len(updates)} result(s) saved.")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Error saving results: {e}")
+    try:
+        for gid, (home, away) in game_inputs.items():
+            session.sql(
+                f"UPDATE {RESULTS_TABLE} "
+                f"SET HOME_TEAM_GOALS = {home}, AWAY_TEAM_GOALS = {away} "
+                f"WHERE ID = {gid}"
+            ).collect()
+        st.success(f"{len(game_inputs)} result(s) saved.")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Error saving results: {e}")
