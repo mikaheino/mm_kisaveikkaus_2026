@@ -131,6 +131,9 @@ st.markdown(
         color: #ADFF2F !important;
         border-color: #ADFF2F !important;
     }
+
+    /* ── Logo image full-width ── */
+    [data-testid="stImage"] img { width: 100% !important; max-width: 100%; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -148,7 +151,7 @@ st.session_state.user_email = st.session_state.snowpark_session.sql(
 ).collect()[0][0].lower()
 
 # -- Display logo --
-st.image("logo_2026.png", use_container_width=True)
+st.image("logo_2026.png")
 
 # -- Multi-page navigation using st.navigation + st.Page --
 _ADMIN_EMAILS = {
