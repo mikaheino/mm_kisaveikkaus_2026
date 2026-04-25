@@ -1,4 +1,32 @@
+import base64
+import os
 import streamlit as st
+
+# ── Background image ──────────────────────────────────────────────────────────
+_img_path = os.path.join(os.path.dirname(__file__), "..", "ioag9w7poe8ayrodgmlc.webp")
+if os.path.exists(_img_path):
+    _b64 = base64.b64encode(open(_img_path, "rb").read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        [data-testid="stAppViewContainer"] {{
+            background-image: url("data:image/webp;base64,{_b64}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        [data-testid="stAppViewContainer"]::before {{
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 10, 30, 0.72);
+            pointer-events: none;
+            z-index: 0;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 st.title("Rules")
 

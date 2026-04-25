@@ -139,17 +139,57 @@ st.markdown(
 # -- Snowflake connection (container runtime uses st.connection for thread safety) --
 st.session_state.snowpark_session = st.connection("snowflake").session()
 
+# -- Resolve the actual logged-in viewer's identity --
+# Container runtime runs as a platform service account, so CURRENT_USER() returns
+# a system name. Try st.context.user attributes in order of preference.
+_SERVICE_ACCOUNT = "stplatstreamlit15690104"
+
+def _resolve_user_email(session) -> str:
+    _ctx_user = getattr(st.context, "user", None)
+    if _ctx_user is not None:
+        # Try email first, then login_name (set to email on user creation), then name
+        for _attr in ("email", "login_name", "name"):
+            _val = getattr(_ctx_user, _attr, None)
+            if _val and _val.lower() != _SERVICE_ACCOUNT:
+                return _val.lower()
+    # Final fallback: correct in native SiS and local dev
+    return session.sql("SELECT CURRENT_USER()").collect()[0][0].lower()
+
+st.session_state.user_email = _resolve_user_email(st.session_state.snowpark_session)
+
+# Temporary debug — only shown when identity resolution fails (service account detected)
+if st.session_state.user_email == _SERVICE_ACCOUNT:
+    with st.expander("⚠️ Debug: user context (admin only)", expanded=True):
+        _ctx_user = getattr(st.context, "user", None)
+        st.write("st.context.user:", _ctx_user)
+        if _ctx_user is not None:
+            st.write("Attributes:", {
+                a: getattr(_ctx_user, a, None)
+                for a in ("email", "login_name", "name", "id")
+            })
+        _headers = getattr(st.context, "headers", None)
+        st.write("st.context.headers:", dict(_headers) if _headers else None)
+
 # -- Display logo --
 st.image("logo_2026.png", width="stretch")
 
 # -- Multi-page navigation using st.navigation + st.Page --
-pages = st.navigation(
-    [
-        st.Page("app_pages/my_predictions.py", title="My Predictions", icon=":material/sports_hockey:"),
-        st.Page("app_pages/standings.py", title="Standings", icon=":material/emoji_events:"),
-        st.Page("app_pages/rules.py", title="Rules", icon=":material/menu_book:"),
-    ],
-    position="top",
-)
+_ADMIN_EMAILS = {
+    "mika.heino@recordlydata.com",
+    "mikko.sulonen@recordlydata.com",
+    "marko.laitinen@recordlydata.com",
+}
+
+_pages = [
+    st.Page("app_pages/my_predictions.py", title="My Predictions", icon=":material/sports_hockey:"),
+    st.Page("app_pages/standings.py", title="Standings", icon=":material/emoji_events:"),
+    st.Page("app_pages/rules.py", title="Rules", icon=":material/menu_book:"),
+]
+if st.session_state.get("user_email") in _ADMIN_EMAILS:
+    _pages.append(
+        st.Page("app_pages/admin_results.py", title="Admin: Results", icon=":material/admin_panel_settings:")
+    )
+
+pages = st.navigation(_pages, position="top")
 
 pages.run()
