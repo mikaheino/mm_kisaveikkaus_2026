@@ -136,8 +136,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# -- Snowflake connection (container runtime uses st.connection for thread safety) --
-st.session_state.snowpark_session = st.connection("snowflake").session()
+# -- Snowflake session (get_active_session works in both classic SiS and vNext) --
+from snowflake.snowpark.context import get_active_session
+st.session_state.snowpark_session = get_active_session()
 
 # -- Resolve the actual logged-in viewer's identity --
 # Container runtime runs as a platform service account, so CURRENT_USER() returns
