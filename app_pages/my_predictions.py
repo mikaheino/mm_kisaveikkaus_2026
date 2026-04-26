@@ -6,7 +6,7 @@ from datetime import datetime
 from trivia import MATCH_TRIVIA
 
 # ── Background image ──────────────────────────────────────────────────────────
-_img_path = os.path.join(os.path.dirname(__file__), "..", "ioag9w7poe8ayrodgmlc.webp")
+_img_path = os.path.join(os.path.dirname(__file__), "..", "assets", "ioag9w7poe8ayrodgmlc.webp")
 if os.path.exists(_img_path):
     _b64 = base64.b64encode(open(_img_path, "rb").read()).decode()
     st.markdown(

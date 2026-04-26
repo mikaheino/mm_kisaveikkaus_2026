@@ -26,7 +26,7 @@ def flagged(match: str) -> str:
     return match
 
 # ── Background image ──────────────────────────────────────────────────────────
-_img_path = os.path.join(os.path.dirname(__file__), "..", "saku-koivu.jpg")
+_img_path = os.path.join(os.path.dirname(__file__), "..", "assets", "saku-koivu.jpg")
 if os.path.exists(_img_path):
     _b64 = base64.b64encode(open(_img_path, "rb").read()).decode()
     st.markdown(

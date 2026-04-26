@@ -14,7 +14,7 @@ st.set_page_config(
     layout="centered",
 )
 
-_ioag_b64 = _img_b64("ioag9w7poe8ayrodgmlc.webp")
+_ioag_b64 = _img_b64("assets/ioag9w7poe8ayrodgmlc.webp")
 st.markdown(
     f"""
     <style>
@@ -158,7 +158,7 @@ st.markdown(
 if "snowpark_session" not in st.session_state:
     st.session_state.snowpark_session = MockSession()
 
-st.image("logo_2026.png", width="stretch")
+st.image("assets/logo_2026.png", width="stretch")
 
 pages = st.navigation(
     [

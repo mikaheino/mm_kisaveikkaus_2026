@@ -8,10 +8,10 @@ Players predict match outcomes (home and away goals) for all 56 group stage matc
 
 ### Runtime
 
-- **Container runtime** (`SYSTEM$ST_CONTAINER_RUNTIME_PY3_11`) with Streamlit 1.50+
-- **Compute pool**: `MM_KISAVEIKKAUS_COMPUTE_POOL` (CPU_X64_XS, 1 node, auto-suspend 600s, auto-resume)
-- **External Access Integration**: `ALLOW_ALL_INTEGRATION` (for PyPI package installs)
-- Dependencies managed via `pyproject.toml` (uv package manager)
+- **Warehouse runtime** (SiS) with Streamlit pinned via `environment.yml`
+- **Warehouse**: `MM_KISAVEIKKAUS_WH` (XS, auto-suspend 60s)
+- Packages from Snowflake Anaconda Channel only — no PyPI
+- Local dev via `streamlit_app_local.py` with `MockSession` (no Snowflake needed)
 
 ### Snowflake Objects
 
@@ -60,15 +60,26 @@ SYSADMIN
 ## File Structure
 
 ```
-streamlit_app.py        # Entry point (st.navigation, st.connection, CSS)
-pyproject.toml          # Container runtime dependencies (uv)
-logo.png                # App logo
+streamlit_app.py               # Production entry point (Snowflake)
+streamlit_app_local.py         # Local dev entry point (MockSession)
+mock_session.py                # MockSession — mimics Snowpark Session API
+trivia.py                      # Per-match trivia facts
+environment.yml                # Snowflake warehouse runtime dependencies
+pyproject.toml                 # Local dev dependencies (uv)
+assets/
+  logo_2026.png                # IIHF 2026 logo
+  saku-koivu.jpg               # Background image — Standings page
+  ioag9w7poe8ayrodgmlc.webp   # Background image — My Predictions + Rules
+tests/
+  test_trivia.py               # Smoke tests (pure Python)
 app_pages/
-  __init__.py           # Package marker
-  prediction.py         # Submit new predictions
-  update_prediction.py  # Update existing predictions
-  standings.py          # Leaderboard and match details
-  rules.py              # Game rules
+  __init__.py
+  my_predictions.py            # Submit + update predictions
+  standings.py                 # Leaderboard and match details
+  rules.py                     # Scoring rules and prize info
+  admin_results.py             # Admin: enter match results
+  prediction.py                # Legacy
+  update_prediction.py         # Legacy
 ```
 
 ## Administration

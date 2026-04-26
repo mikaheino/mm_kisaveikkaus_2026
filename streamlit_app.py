@@ -164,7 +164,7 @@ st.session_state.user_email = st.session_state.snowpark_session.sql(
 ).collect()[0][0].lower()
 
 # -- Display logo --
-st.image("logo_2026.png")
+st.image("assets/logo_2026.png")
 
 # -- Multi-page navigation (sidebar, compatible with all SiS Streamlit versions) --
 import importlib
