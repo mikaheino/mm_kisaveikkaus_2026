@@ -2,7 +2,7 @@
 
 IIHF World Championship ice hockey prediction game, running as a **Streamlit in Snowflake (SiS)** application using the **container runtime**.
 
-Players predict match outcomes (home and away goals) for all 56 group stage matches of the **2026 IIHF World Championship** (Zurich & Fribourg, Switzerland, May 15-26). Points are awarded based on prediction accuracy, and a live leaderboard tracks standings as results come in.
+Players predict match outcomes (home and away goals) for all 56 group stage matches of the **2026 IIHF World Championship** (Zurich & Fribourg, Switzerland, May 15-26), plus playoff bracket predictions (8 QF → 4 SF → 2 finalists → champion) and individual award winners. Points are awarded based on prediction accuracy, and a live leaderboard tracks standings as results come in.
 
 ## Architecture
 
@@ -21,6 +21,7 @@ Players predict match outcomes (home and away goals) for all 56 group stage matc
 | `MM_KISAVEIKKAUS_SCHEDULE` | Table | 56-row match schedule (2026 dates, English team names) |
 | `MM_KISAVEIKKAUS_RESULTS` | Table | Actual match results (goals filled in by admin as games finish) |
 | `MM_KISAVEIKKAUS_RESULTS_V` | View | Results with computed winner column |
+| `MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS` | Table | Per-user playoff bracket + award predictions |
 | `MM_KISAVEIKKAUS_STAGE` | Stage | Streamlit app source files |
 | `MM_KISAVEIKKAUS_APP` | Streamlit | The deployed application (container runtime) |
 | `MM_KISAVEIKKAUS_WH` | Warehouse | XS, auto-suspend 60s |
@@ -45,17 +46,29 @@ SYSADMIN
 
 | Page | File | Description |
 |------|------|-------------|
-| Submit Prediction | `app_pages/prediction.py` | Enter name and predict all 56 match scores |
-| Update Prediction | `app_pages/update_prediction.py` | Load and overwrite existing predictions |
+| My Predictions | `app_pages/my_predictions.py` | Group-stage scores + playoff bracket predictions |
 | Standings | `app_pages/standings.py` | Live leaderboard and per-player match details |
-| Rules | `app_pages/rules.py` | Scoring rules, participation bet, prize distribution |
+| Rules | `app_pages/rules.py` | Scoring rules, playoff scoring, participation bet, prize distribution |
+| Admin: Results | `app_pages/admin_results.py` | Admin: enter match results (restricted) |
 
 ## Scoring
+
+### Group stage (per match)
 
 - **3 points** — Exact score predicted correctly
 - **1 point** — Correct winner predicted (wrong score)
 - **0 points** — Wrong prediction
 - Tiebreaker: earlier submission timestamp wins
+
+### Playoff bracket (advance predictions)
+
+| Prediction | Points | Max |
+|---|---|---|
+| Correct quarter-finalist | 1 p each | 8 p |
+| Correct semi-finalist | 3 p each | 12 p |
+| Correct finalist | 5 p each | 10 p |
+| Correct champion | 10 p | 10 p |
+| **Total playoff max** | | **40 p** |
 
 ## File Structure
 

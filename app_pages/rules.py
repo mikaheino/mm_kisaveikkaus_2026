@@ -64,3 +64,23 @@ st.header("Prize Distribution")
 st.write("1st place: **60%**")
 st.write("2nd place: **30%**")
 st.write("3rd place: **10%**")
+
+st.divider()
+
+st.header("Playoff Predictions")
+st.write(
+    "In addition to group-stage scores, predict the knockout-round teams, "
+    "the champion, and individual award winners."
+)
+st.markdown(
+    """
+| Prediction | Points | Max |
+|---|---|---|
+| Correct quarter-finalist | 1 p each | 8 p |
+| Correct semi-finalist | 3 p each | 12 p |
+| Correct finalist | 5 p each | 10 p |
+| Correct champion | 10 p | 10 p |
+| **Total playoff max** | | **40 p** |
+"""
+)
+st.write("Top scorer and top points winner scoring will be announced separately.")
