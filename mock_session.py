@@ -6,13 +6,14 @@ in-memory predictions in a single shared table so all UI features can be tested.
 import pandas as pd
 from datetime import date, datetime
 from itertools import combinations
+from typing import Optional
 
 # ── Sample schedule ───────────────────────────────────────────────────────────
 
-GROUP_A = ["Finland", "United States", "Switzerland", "Germany",
-           "Latvia", "Austria", "Hungary", "Great Britain"]
-GROUP_B = ["Canada", "Sweden", "Czech Republic", "Denmark",
-           "Slovakia", "Norway", "Slovenia", "Italy"]
+GROUP_A = ["Suomi", "Yhdysvallat", "Sveitsi", "Saksa",
+           "Latvia", "Itävalta", "Unkari", "Iso-Britannia"]
+GROUP_B = ["Kanada", "Ruotsi", "Tšekki", "Tanska",
+           "Slovakia", "Norja", "Slovenia", "Italia"]
 
 def _build_schedule() -> pd.DataFrame:
     """Round-robin matchups for both groups, spread across 12 days."""
@@ -59,11 +60,20 @@ _PLAYOFF_DF = pd.DataFrame(columns=[
     "CHAMPION", "TOP_SCORER", "TOP_POINTS", "INSERTED",
 ])
 
+_PLAYOFF_RESULTS_DF = pd.DataFrame(columns=[
+    "QF_TEAM_1", "QF_TEAM_2", "QF_TEAM_3", "QF_TEAM_4",
+    "QF_TEAM_5", "QF_TEAM_6", "QF_TEAM_7", "QF_TEAM_8",
+    "SF_TEAM_1", "SF_TEAM_2", "SF_TEAM_3", "SF_TEAM_4",
+    "FINALIST_1", "FINALIST_2",
+    "CHAMPION", "TOP_SCORER", "TOP_POINTS", "UPDATED",
+])
+
 # ── Shared predictions table ─────────────────────────────────────────────────
 
-MOCK_CURRENT_USER = "test.user@recordlydata.com"
+# Use an admin email so admin_results.py can be tested locally without extra setup.
+MOCK_CURRENT_USER = "mika.heino@recordlydata.com"
 
-def _make_predictions(email: str, seed: int, complete_days: int | None = None) -> pd.DataFrame:
+def _make_predictions(email: str, seed: int, complete_days: Optional[int] = None) -> pd.DataFrame:
     import random
     rng = random.Random(seed)
     dates = sorted(SCHEDULE_DF["MATCH_DAY"].unique())
@@ -105,7 +115,7 @@ class _MockResult:
     def to_pandas(self) -> pd.DataFrame:
         return self._df.copy()
 
-    def collect(self) -> list[_MockRow]:
+    def collect(self) -> "list[_MockRow]":
         return [_MockRow(r) for r in self._df.to_dict(orient="records")]
 
 
@@ -115,7 +125,7 @@ class MockSession:
     """Mimics the subset of Snowpark Session API used by the app."""
 
     def sql(self, query: str) -> _MockResult:
-        global _PREDICTIONS_DF, _PLAYOFF_DF
+        global _PREDICTIONS_DF, _PLAYOFF_DF, _PLAYOFF_RESULTS_DF
         q = query.upper()
 
         # ── CURRENT_USER ────────────────────────────────────────────────
@@ -129,6 +139,7 @@ class MockSession:
                 "MM_KISAVEIKKAUS_SCHEDULE",
                 "MM_KISAVEIKKAUS_PREDICTIONS",
                 "MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS",
+                "MM_KISAVEIKKAUS_PLAYOFF_RESULTS",
             ]
             if "LIKE '" in query:
                 like_val = query.split("LIKE '")[1].split("'")[0]
@@ -136,6 +147,34 @@ class MockSession:
                 table_names = [n for n in table_names if like_val in n.upper()]
             df = pd.DataFrame({"name": table_names})
             return _MockResult(df)
+
+        # ── DELETE playoff results ──────────────────────────────────────
+        if "DELETE" in q and "PLAYOFF_RESULTS" in q:
+            _PLAYOFF_RESULTS_DF = _PLAYOFF_RESULTS_DF.iloc[0:0].copy()
+            return _MockResult(pd.DataFrame({"rows_deleted": [0]}))
+
+        # ── INSERT playoff results ──────────────────────────────────────
+        if "INSERT" in q and "PLAYOFF_RESULTS" in q:
+            import re
+            cols_str = query.split("(", 1)[1].split(")", 1)[0]
+            cols = [c.strip() for c in cols_str.split(",")]
+            values_str = query.split("VALUES", 1)[1]
+            tuples = re.findall(r"\(([^)]+)\)", values_str)
+            new_rows = []
+            for t in tuples:
+                parts = [p.strip().strip("'") for p in t.split(",")]
+                row_dict = {}
+                for idx, col in enumerate(cols):
+                    row_dict[col] = None if parts[idx].upper() == "NULL" else parts[idx]
+                new_rows.append(row_dict)
+            _PLAYOFF_RESULTS_DF = pd.concat(
+                [_PLAYOFF_RESULTS_DF, pd.DataFrame(new_rows)], ignore_index=True
+            )
+            return _MockResult(pd.DataFrame({"rows_inserted": [len(new_rows)]}))
+
+        # ── SELECT playoff results ──────────────────────────────────────
+        if "PLAYOFF_RESULTS" in q:
+            return _MockResult(_PLAYOFF_RESULTS_DF.copy())
 
         # ── DELETE playoff predictions ──────────────────────────────────
         if "DELETE" in q and "PLAYOFF_PREDICTIONS" in q:
@@ -213,6 +252,15 @@ class MockSession:
 
         if "COUNT" in q and "MM_KISAVEIKKAUS_SCHEDULE" in q:
             return _MockResult(pd.DataFrame({"N": [len(SCHEDULE_DF)]}))
+
+        # ── Schedule LEFT JOIN Results (admin page) ─────────────────────
+        if "MM_KISAVEIKKAUS_SCHEDULE" in q and "MM_KISAVEIKKAUS_RESULTS" in q:
+            df = SCHEDULE_DF[["ID", "MATCH_DAY", "MATCH"]].merge(
+                RESULTS_DF[["ID", "HOME_TEAM_GOALS", "AWAY_TEAM_GOALS"]],
+                on="ID",
+                how="left",
+            )
+            return _MockResult(df)
 
         # ── Schedule ────────────────────────────────────────────────────
         if "MM_KISAVEIKKAUS_SCHEDULE" in q:

@@ -43,7 +43,7 @@ app_pages/
 
 | Layer | Technology |
 |---|---|
-| UI framework | Streamlit (warehouse runtime, see supported versions below) |
+| UI framework | Streamlit 1.35.0 (warehouse runtime, see supported versions below) |
 | Runtime | Snowflake SiS warehouse runtime, Python 3.11 |
 | Database | Snowflake Snowpark (`snowflake-snowpark-python`) |
 | Data manipulation | pandas |
@@ -108,11 +108,16 @@ https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependen
 | Table | Purpose |
 |---|---|
 | `MM_KISAVEIKKAUS_SCHEDULE` | 56 games: ID, MATCH_DAY, MATCH |
-| `MM_KISAVEIKKAUS_RESULTS` | Actual results (admin-filled) |
+| `MM_KISAVEIKKAUS_RESULTS` | Actual group-stage results (admin-filled) |
 | `MM_KISAVEIKKAUS_RESULTS_V` | Results view with computed winner column |
-| `{NAME}_MM_KISAVEIKKAUS` | Per-player predictions, auto-created on first submit |
+| `MM_KISAVEIKKAUS_PREDICTIONS` | Per-user group-stage predictions (one row per user × match) |
+| `MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS` | Per-user playoff bracket + top scorer/points predictions (one row per user) |
+| `MM_KISAVEIKKAUS_PLAYOFF_RESULTS` | Actual playoff bracket + top scorer/points (admin-filled, single row) — see v1.3.0 migration |
+| `{NAME}_MM_KISAVEIKKAUS` | Legacy per-player predictions (pre-v1.0), no longer written |
 
 ### Deploying files after changes
+
+Always DROP and recreate the app for fastest and most reliable deployment — avoids stale file issues.
 
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -120,10 +125,13 @@ USE DATABASE STREAMLIT_APPS;
 USE SCHEMA MM_KISAVEIKKAUS;
 USE WAREHOUSE MM_KISAVEIKKAUS_WH;
 
--- Source files
+-- Upload all source files
 PUT file:///path/to/streamlit_app.py @MM_KISAVEIKKAUS_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 PUT file:///path/to/app_pages/my_predictions.py @MM_KISAVEIKKAUS_STAGE/app_pages/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
--- repeat for other changed .py files
+PUT file:///path/to/app_pages/standings.py @MM_KISAVEIKKAUS_STAGE/app_pages/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file:///path/to/app_pages/rules.py @MM_KISAVEIKKAUS_STAGE/app_pages/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file:///path/to/app_pages/admin_results.py @MM_KISAVEIKKAUS_STAGE/app_pages/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file:///path/to/trivia.py @MM_KISAVEIKKAUS_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
 -- Assets (only when images change)
 PUT file:///path/to/assets/logo_2026.png @MM_KISAVEIKKAUS_STAGE/assets/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
@@ -133,11 +141,66 @@ PUT file:///path/to/assets/ioag9w7poe8ayrodgmlc.webp @MM_KISAVEIKKAUS_STAGE/asse
 -- Dependencies (only when environment.yml changes)
 PUT file:///path/to/environment.yml @MM_KISAVEIKKAUS_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
-ALTER STREAMLIT MM_KISAVEIKKAUS_APP COMMIT;
-ALTER STREAMLIT MM_KISAVEIKKAUS_APP ADD LIVE VERSION FROM LAST;
+-- Drop previous version and recreate
+DROP STREAMLIT MM_KISAVEIKKAUS_APP;
+
+CREATE STREAMLIT MM_KISAVEIKKAUS_APP
+    ROOT_LOCATION = '@MM_KISAVEIKKAUS_STAGE'
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = 'MM_KISAVEIKKAUS_WH';
 ```
 
-If the app serves stale files after commit, do a full DROP + CREATE cycle.
+### Database migrations
+
+Schema and data migrations live in `RELEASE_NOTES.md` under the corresponding version heading. Each migration is a self-contained SQL block wrapped in `BEGIN; ... COMMIT;` and ends with sanity-check `SELECT COUNT(*)` queries — both should return `0` after a successful run.
+
+**Order of operations for a release with a migration:**
+
+1. **Run the migration SQL first** (as `ACCOUNTADMIN` in a Snowflake worksheet) — see `RELEASE_NOTES.md`.
+2. **Verify** the sanity-check counts return `0`.
+3. **Then deploy the code** via the `PUT` + `DROP STREAMLIT` + `CREATE STREAMLIT` block above.
+
+If you deploy the code first, the running app will still query the old (un-migrated) values and most lookups (e.g. `_FLAGS.get(...)`, `MATCH_TRIVIA.get(...)`) will silently miss — flags disappear, trivia stops rendering, playoff defaults don't pre-populate.
+
+Migrations are written to be **idempotent**: running them again on already-migrated data is a no-op because the source strings (English names) no longer exist in the table.
+
+#### v1.2.0 — English → Finnish team names (one-time migration)
+
+Required when deploying v1.2.0 or later on top of a v1.0–v1.1 database. Translates every team-name string in four tables:
+
+| Table | Column(s) |
+|---|---|
+| `MM_KISAVEIKKAUS_SCHEDULE` | `MATCH` |
+| `MM_KISAVEIKKAUS_PREDICTIONS` | `MATCH` |
+| `MM_KISAVEIKKAUS_RESULTS` | `MATCH` |
+| `MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS` | `QF_TEAM_1..8`, `SF_TEAM_1..4`, `FINALIST_1..2`, `CHAMPION` |
+
+The full SQL is in `RELEASE_NOTES.md` under **v1.2.0 → Database migration required**. After the run:
+
+1. Update `mock_session.py` `GROUP_A`/`GROUP_B` to Finnish (already done in v1.2.0 commit) so local dev matches.
+2. Restart any running local Streamlit server — `trivia.py` and `mock_session.py` are imported modules and won't hot-reload (see Local Development below).
+3. Deploy the new code via `DROP STREAMLIT` + `CREATE STREAMLIT`.
+
+Translation map (single source of truth — keep in sync with `_FLAGS` in the page modules and the migration SQL):
+
+| English | Finnish |
+|---|---|
+| Austria | Itävalta |
+| Canada | Kanada |
+| Czech Republic | Tšekki |
+| Denmark | Tanska |
+| Finland | Suomi |
+| Germany | Saksa |
+| Great Britain | Iso-Britannia |
+| Hungary | Unkari |
+| Italy | Italia |
+| Latvia | Latvia *(unchanged)* |
+| Norway | Norja |
+| Slovakia | Slovakia *(unchanged)* |
+| Slovenia | Slovenia *(unchanged)* |
+| Sweden | Ruotsi |
+| Switzerland | Sveitsi |
+| United States | Yhdysvallat |
 
 ---
 
@@ -152,14 +215,114 @@ ruff format .
 
 # Lint
 ruff check .
-
-# Run app locally
-python3 -m streamlit run streamlit_app_local.py
 ```
 
 Tests live in `tests/`. Keep them pure Python — no Streamlit imports, no Snowflake connection. `MockSession` exists for local logic testing if needed.
 
 There is no CI/CD pipeline. Deploys are manual SQL PUT commands (see Snowflake-Specific Settings above).
+
+---
+
+# Local Development
+
+The local entry point `streamlit_app_local.py` swaps `get_active_session()` for `MockSession`, so the full UI runs without a Snowflake connection.
+
+```bash
+# Start the local server (default port 8501)
+python3 -m streamlit run streamlit_app_local.py --server.port 8501 --server.headless true
+```
+
+`--server.headless true` skips the "Open browser?" prompt; useful when running in the background or when an agent will drive the browser via Playwright.
+
+### Hot-reload gotcha: imported modules are cached
+
+Streamlit re-runs the script on each browser refresh, but Python's import system caches imported modules. Edits to **`trivia.py`, `mock_session.py`, or any other module imported by a page** are **not** picked up by hot reload — only edits to the page file itself reload cleanly.
+
+When you change an imported module, restart the server:
+
+```bash
+# Find and kill the running server
+lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep ':8501'
+kill <PID>
+
+# Start it again
+python3 -m streamlit run streamlit_app_local.py --server.port 8501 --server.headless true
+```
+
+If you see stale data after editing `trivia.py` or `mock_session.py` and a refresh doesn't fix it, this is the cause.
+
+### MockSession scope
+
+`MockSession` provides a 56-game schedule, results for the first 8 games, and an empty in-memory predictions / playoff-predictions store. It implements just enough of the Snowpark `session.sql(...).collect()` and `.to_pandas()` surface to drive the UI; arbitrary SQL is **not** evaluated. If you add a new query pattern in a page, extend `mock_session.py` to handle it or the local view will silently return empty data.
+
+### Mock vs production parity
+
+Names stored in `MM_KISAVEIKKAUS_*` tables (team names, schedule `MATCH` strings) must match between `mock_session.py` and Snowflake. After running a DB migration (e.g. v1.2.0 English → Finnish), update `mock_session.py` `GROUP_A`/`GROUP_B` and any hard-coded team names in the same commit, otherwise local will not match production behavior.
+
+---
+
+# Developing with Playwright
+
+Playwright lets an agent drive a real browser against the local Streamlit server — useful for visual verification of CSS changes, screenshot diffs, and interaction flows that pure unit tests can't cover.
+
+### Setup
+
+```bash
+# Install once (Anthropic's local dev only — not in environment.yml)
+uv pip install playwright
+python3 -m playwright install chromium
+```
+
+### Standard agent workflow
+
+1. **Start Streamlit headless.** Keep it running in the background so multiple Playwright runs reuse the same server.
+   ```bash
+   python3 -m streamlit run streamlit_app_local.py --server.port 8501 --server.headless true
+   ```
+2. **Wait for it to come up** before driving the browser. The first request after startup can take 2–4 s.
+   ```bash
+   sleep 3 && curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8501   # expect 200
+   ```
+3. **Drive the page** with a small Python script. Always wait for the Streamlit script-runner to settle before reading the DOM or taking screenshots:
+   ```python
+   from playwright.sync_api import sync_playwright
+
+   with sync_playwright() as p:
+       browser = p.chromium.launch()
+       page = browser.new_page(viewport={"width": 1280, "height": 1600})
+       page.goto("http://localhost:8501")
+       page.wait_for_selector("[data-testid='stAppViewContainer']", state="visible")
+       page.wait_for_timeout(1500)  # let async reruns finish
+       page.screenshot(path="/tmp/predictions.png", full_page=True)
+       browser.close()
+   ```
+4. **Restart the server when you edit `trivia.py`, `mock_session.py`, or any imported module.** See the hot-reload gotcha above. Page-file edits (`app_pages/*.py`, `streamlit_app_local.py`) do hot-reload — a `page.reload()` is enough.
+
+### Verifying CSS changes
+
+Computed styles are more reliable than visual diffs when checking colors, borders, or backgrounds — screenshots can compress or alpha-blend in misleading ways.
+
+```python
+bg = page.evaluate(
+    "() => getComputedStyle("
+    "document.querySelector('[data-testid=\"stMultiSelect\"] [data-baseweb=\"select\"] > div')"
+    ").backgroundColor"
+)
+print(bg)   # e.g. "rgba(195, 215, 250, 0.94)"
+```
+
+### Things that will not work in Playwright but do in SiS
+
+- **Google Fonts via `@import url(...)` in CSS** loads in local Playwright but is blocked by Snowflake's CSP in some warehouse runtimes. Verify font rendering on Snowflake after deploy if you change the font stack.
+- **`components.html(...)` `<script>` tags** execute in both, but `st.markdown` strips `<script>`. The countdown timer in `my_predictions.py` is the canonical example — if a screenshot shows static text where you expect a live counter, you used `st.markdown` instead of `components.html`.
+- **The "Press Enter to submit form" tooltip** is a Chrome native UI element and visible in Playwright screenshots; it does **not** appear in Snowflake's embedded iframe. Don't try to hide it with CSS — there is none.
+
+### Screenshot review tips
+
+- Save to `/tmp/<feature>.png` rather than the repo to avoid polluting git.
+- Use `full_page=True` to capture below the fold.
+- For mobile-style layouts, set `viewport={"width": 412, "height": 915}` (Pixel-class) before `goto`.
+- For dark-overlay backgrounds, sample `getComputedStyle` on the actual element instead of trusting screenshot pixel colors — the `::before` overlay can fool the eye.
 
 ---
 
