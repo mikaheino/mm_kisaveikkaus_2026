@@ -28,59 +28,60 @@ if os.path.exists(_img_path):
         unsafe_allow_html=True,
     )
 
-st.title("Rules")
+st.title("S\u00e4\u00e4nn\u00f6t")
 
-st.header("How to input your prediction")
+st.header("N\u00e4in veikkaat")
 st.write(
-    "Input your predictions by using the **Submit Prediction** page. "
-    "You can modify your existing prediction using the **Update Prediction** page."
+    "Sy\u00f6t\u00e4 veikkaukset **Omat veikkaukset** -sivulla. "
+    "Voit p\u00e4ivitt\u00e4\u00e4 veikkauksiasi milloin tahansa ennen lukkiutumisaikaa."
 )
 st.write(
-    "Updating your prediction will overwrite the existing one. "
-    "The system does not keep backups of previous predictions."
+    "P\u00e4ivitys korvaa aiemman veikkauksen. "
+    "J\u00e4rjestelm\u00e4 ei s\u00e4ilyt\u00e4 vanhoja versioita."
 )
 
 st.divider()
 
-st.header("Scoring")
-st.write("Let's consider a match between **France** and **Slovakia**.")
-st.write("You predict that France will win **3\u20132**.")
+st.header("Pisteytys")
+st.write("Esimerkki: ottelu **Ranska vs Slovakia**.")
+st.write("Veikkauksesi: Ranska voittaa **3\u20132**.")
 st.markdown(
     """
-- If the game ends **3\u20132** \u2192 you get **3 points** (correct exact score)
-- If the game ends **4\u20132** \u2192 you get **1 point** (correct winner only)
-- If two or more players are tied on points, the player who submitted their prediction first has the upper hand.
+- Ottelu p\u00e4\u00e4ttyy **3\u20132** \u2192 saat **3 pistett\u00e4** (oikea tulos)
+- Ottelu p\u00e4\u00e4ttyy **4\u20132** \u2192 saat **1 pisteen** (oikea voittaja)
+- Ottelu p\u00e4\u00e4ttyy **2\u20133** \u2192 saat **0 pistett\u00e4**
+- Tasatilanteessa aiemmin l\u00e4hetetty veikkaus voittaa.
 """
 )
 
 st.divider()
 
-st.header("Participation Bet")
-st.write("20 euros for each participant. The bet must be paid before the first game.")
+st.header("Osallistumismaksu")
+st.write("20 euroa per osallistuja. Maksu tulee suorittaa ennen ensimm\u00e4ist\u00e4 ottelua.")
 
 st.divider()
 
-st.header("Prize Distribution")
-st.write("1st place: **60%**")
-st.write("2nd place: **30%**")
-st.write("3rd place: **10%**")
+st.header("Palkinnonjako")
+st.write("1. sija: **60 %**")
+st.write("2. sija: **30 %**")
+st.write("3. sija: **10 %**")
 
 st.divider()
 
-st.header("Playoff Predictions")
+st.header("Pudotuspeliveikkaukset")
 st.write(
-    "In addition to group-stage scores, predict the knockout-round teams, "
-    "the champion, and individual award winners."
+    "Alkulohkon tulosten lis\u00e4ksi veikataan pudotuspelikierrosten joukkueet, "
+    "mestari sek\u00e4 yksil\u00f6palkinnot."
 )
 st.markdown(
     """
-| Prediction | Points | Max |
+| Veikkaus | Pisteet | Maksimi |
 |---|---|---|
-| Correct quarter-finalist | 1 p each | 8 p |
-| Correct semi-finalist | 3 p each | 12 p |
-| Correct finalist | 5 p each | 10 p |
-| Correct champion | 10 p | 10 p |
-| **Total playoff max** | | **40 p** |
+| Oikea puoliv\u00e4lier\u00e4 | 1 p / kpl | 8 p |
+| Oikea v\u00e4lier\u00e4 | 3 p / kpl | 12 p |
+| Oikea finalisti | 5 p / kpl | 10 p |
+| Oikea mestari | 10 p | 10 p |
+| **Pudotuspelimaksimi yhteensa** | | **40 p** |
 """
 )
-st.write("Top scorer and top points winner scoring will be announced separately.")
+st.write("Maalientekija- ja pisteporssipisteytys ilmoitetaan erikseen.")

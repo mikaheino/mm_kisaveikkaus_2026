@@ -1,6 +1,6 @@
 # MM-kisaveikkaus
 
-IIHF World Championship ice hockey prediction game, running as a **Streamlit in Snowflake (SiS)** application using the **container runtime**.
+IIHF World Championship ice hockey prediction game, running as a **Streamlit in Snowflake (SiS)** application using the **warehouse runtime**.
 
 Players predict match outcomes (home and away goals) for all 56 group stage matches of the **2026 IIHF World Championship** (Zurich & Fribourg, Switzerland, May 15-26), plus playoff bracket predictions (8 QF → 4 SF → 2 finalists → champion) and individual award winners. Points are awarded based on prediction accuracy, and a live leaderboard tracks standings as results come in.
 
@@ -18,25 +18,25 @@ Players predict match outcomes (home and away goals) for all 56 group stage matc
 | Object | Type | Description |
 |--------|------|-------------|
 | `STREAMLIT_APPS.MM_KISAVEIKKAUS` | Schema | All app objects live here |
-| `MM_KISAVEIKKAUS_SCHEDULE` | Table | 56-row match schedule (2026 dates, English team names) |
+| `MM_KISAVEIKKAUS_SCHEDULE` | Table | 56-row match schedule (2026 dates, Finnish team names) |
 | `MM_KISAVEIKKAUS_RESULTS` | Table | Actual match results (goals filled in by admin as games finish) |
 | `MM_KISAVEIKKAUS_RESULTS_V` | View | Results with computed winner column |
 | `MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS` | Table | Per-user playoff bracket + award predictions |
+| `MM_KISAVEIKKAUS_PLAYOFF_RESULTS` | Table | Actual playoff bracket + top scorer/points (admin-filled) |
 | `MM_KISAVEIKKAUS_STAGE` | Stage | Streamlit app source files |
-| `MM_KISAVEIKKAUS_APP` | Streamlit | The deployed application (container runtime) |
+| `MM_KISAVEIKKAUS_APP` | Streamlit | The deployed application (warehouse runtime) |
 | `MM_KISAVEIKKAUS_WH` | Warehouse | XS, auto-suspend 60s |
-| `MM_KISAVEIKKAUS_COMPUTE_POOL` | Compute Pool | CPU_X64_XS, auto-suspend 10min, auto-resume |
 
-Player predictions are stored as individual tables named `{PLAYER}_MM_KISAVEIKKAUS` (e.g., `MIKA_MM_KISAVEIKKAUS`). The standings page dynamically discovers all prediction tables by pattern matching.
+Player predictions are stored in `MM_KISAVEIKKAUS_PREDICTIONS` (one row per user × match). The standings page reads all predictions from this table.
 
 ### RBAC
 
 ```
-ACCOUNTADMIN (owns Streamlit app + compute pool)
+ACCOUNTADMIN (owns Streamlit app)
 SYSADMIN
   ├── MM_KISAVEIKKAUS_ADMIN_ROLE  → DB role: MM_KISAVEIKKAUS_ADMIN
-  │                                    └── DB role: MM_KISAVEIKKAUS_PLAYER
-  └── MM_KISAVEIKKAUS_PLAYER_ROLE → DB role: MM_KISAVEIKKAUS_PLAYER
+  │                                    └── DB role: MM_KISAVEIKKAUS_USER
+  └── MM_KISAVEIKKAUS_PLAYER_ROLE → DB role: MM_KISAVEIKKAUS_USER
 ```
 
 - **Admin** — Full schema control, update match results, manage the Streamlit app
@@ -118,33 +118,35 @@ WHERE ID = 1;
 
 ```sql
 USE ROLE ACCOUNTADMIN;
+USE DATABASE STREAMLIT_APPS;
+USE SCHEMA MM_KISAVEIKKAUS;
+USE WAREHOUSE MM_KISAVEIKKAUS_WH;
 
 PUT file:///path/to/streamlit_app.py
-  @STREAMLIT_APPS.MM_KISAVEIKKAUS.MM_KISAVEIKKAUS_STAGE/
+  @MM_KISAVEIKKAUS_STAGE/
   OVERWRITE=TRUE AUTO_COMPRESS=FALSE;
 
 PUT file:///path/to/app_pages/standings.py
-  @STREAMLIT_APPS.MM_KISAVEIKKAUS.MM_KISAVEIKKAUS_STAGE/app_pages/
+  @MM_KISAVEIKKAUS_STAGE/app_pages/
   OVERWRITE=TRUE AUTO_COMPRESS=FALSE;
 
-ALTER STREAMLIT STREAMLIT_APPS.MM_KISAVEIKKAUS.MM_KISAVEIKKAUS_APP COMMIT;
-ALTER STREAMLIT STREAMLIT_APPS.MM_KISAVEIKKAUS.MM_KISAVEIKKAUS_APP ADD LIVE VERSION FROM LAST;
-```
+-- ... repeat for each changed file ...
 
-### Manage compute pool
+DROP STREAMLIT MM_KISAVEIKKAUS_APP;
 
-```sql
--- Suspend (stop credits)
-ALTER COMPUTE POOL MM_KISAVEIKKAUS_COMPUTE_POOL SUSPEND;
+CREATE STREAMLIT MM_KISAVEIKKAUS_APP
+    ROOT_LOCATION = '@MM_KISAVEIKKAUS_STAGE'
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = 'MM_KISAVEIKKAUS_WH';
 
--- Resume manually (also auto-resumes when app is opened)
-ALTER COMPUTE POOL MM_KISAVEIKKAUS_COMPUTE_POOL RESUME;
+GRANT USAGE ON STREAMLIT MM_KISAVEIKKAUS_APP TO DATABASE ROLE MM_KISAVEIKKAUS_USER;
+GRANT USAGE ON STREAMLIT MM_KISAVEIKKAUS_APP TO DATABASE ROLE MM_KISAVEIKKAUS_ADMIN;
 ```
 
 ## Dependencies
 
-Defined in `pyproject.toml` (container runtime uses uv):
+Defined in `environment.yml` (warehouse runtime, Snowflake Anaconda Channel):
 
-- `streamlit>=1.50`
+- `streamlit=1.35.0`
 - `snowflake-snowpark-python`
 - `pandas`

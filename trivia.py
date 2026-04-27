@@ -5,241 +5,279 @@ Keys must match the MATCH column in MM_KISAVEIKKAUS_SCHEDULE exactly.
 
 MATCH_TRIVIA = {
     # ── Group A ──────────────────────────────────────────────────────────────
-    "Finland vs Germany": (
-        "Germany knocked Finland out of the 2023 World Championship semifinal 4–3 in OT — "
-        "then reached the final for the first time since 1930. Finland didn't even make the podium."
+    "Suomi vs Saksa": (
+        "Saksa pudotti Suomen MM-välierissä 2023 jatkoajalla 4–3 – ja eteni finaaliin "
+        "ensimmäistä kertaa sitten vuoden 1930. Suomi ei edes noussut palkintokorokkeelle."
     ),
-    "United States vs Switzerland": (
-        "The USA's 2025 World Championship gold was their FIRST in 92 years — their previous "
-        "title was in 1933. Switzerland have now lost two consecutive World Championship finals."
+    "Yhdysvallat vs Sveitsi": (
+        "USA:n MM-kulta 2025 oli heidän ENSIMMÄINEN 92 vuoteen – edellinen mestaruus vuodelta 1933. "
+        "Sveitsi on nyt hävinnyt kaksi MM-finaalia peräkkäin."
     ),
-    "Great Britain vs Austria": (
-        "Great Britain won Olympic gold in 1936, World Championship gold, AND European Championship "
-        "gold in the same year — the only team ever to claim all three titles in a single season."
+    "Iso-Britannia vs Itävalta": (
+        "Iso-Britannia voitti olympiakultaa, MM-kultaa JA Euroopan mestaruutta samana vuonna 1936 – "
+        "ainoa joukkue, joka on koskaan voittanut kaikki kolme titteliä yhden kauden aikana."
     ),
-    "Hungary vs Finland": (
-        "Hungary's Sándor Miklós is still the YOUNGEST scorer in World Championship history — "
-        "he netted at just 15 years old in 1931. Hungary also beat Finland in a friendly, "
-        "proving upsets aren't impossible."
+    "Unkari vs Suomi": (
+        "Unkarin Sándor Miklós on edelleen MM-historian NUORIN maalintekijä – "
+        "hän teki maalin vain 15-vuotiaana vuonna 1931. Unkari on voittanut Suomenkin "
+        "ystävyysottelussa, joten yllätykset eivät ole mahdottomia."
     ),
-    "Great Britain vs United States": (
-        "Great Britain beat BOTH Canada and the USA at the 1936 Olympics to claim gold. "
-        "They drew 0–0 with USA after 6 scoreless periods — a result that, under the bizarre "
-        "round-robin format, handed Britain the title."
+    "Iso-Britannia vs Yhdysvallat": (
+        "Iso-Britannia voitti SEKÄ Kanadan ETTÄ USA:n 1936 olympialaisissa ja nappasi kullan. "
+        "He pelasivat USA:ta vastaan 0–0 kuuden maalittoman erän jälkeen – ja "
+        "pyöreän turnausformaatin ansiosta Britannia sai kullat."
     ),
-    "Austria vs Hungary": (
-        "Austria trailed Hungary 1–3 at the 2023 World Championship before rallying to force "
-        "overtime and then winning in a shootout — a comeback that kept Austria in the top division."
+    "Itävalta vs Unkari": (
+        "Itävalta oli Unkaria vastaan 1–3 takana vuoden 2023 MM-kisoissa, "
+        "ennen kuin teki paluun, piti pelin ja voitti lopulta rankkareilla – "
+        "voitto, joka piti Itävallan pääsarjassa."
     ),
-    "Germany vs Latvia": (
-        "Latvia beat Germany at the 2025 Worlds. Just two years earlier Latvia had won their "
-        "FIRST EVER World Championship medal — bronze in 2023 — and declared a national holiday."
+    "Saksa vs Latvia": (
+        "Latvia voitti Saksan vuoden 2025 MM-kisoissa. Vain kaksi vuotta aiemmin Latvia "
+        "oli voittanut ENSIMMÄISEN koskaan MM-mitalinsa – pronssia 2023 – "
+        "ja Latviassa julistettiin kansallinen juhlapäivä."
     ),
-    "Finland vs United States": (
-        "USA didn't win a single World Championship gold between 1933 and 2025 — a 92-year drought. "
-        "Finland won four titles in that same stretch, including on home ice in 2022."
+    "Suomi vs Yhdysvallat": (
+        "USA ei voittanut yhtään MM-kultaa vuosien 1933 ja 2025 välillä – 92 vuoden kuivakkausi. "
+        "Suomi voitti tuona samana aikana neljä MM-kultaa, mukaan lukien kotikisoissa 2022."
     ),
-    "Germany vs Switzerland": (
-        "Germany shocked Switzerland in the 2023 quarterfinals despite Switzerland winning their "
-        "first six group games and conceding only 6 goals — widely called the best Swiss team ever assembled."
+    "Saksa vs Sveitsi": (
+        "Saksa järkytti Sveitsiä 2023 puolivälierissä, vaikka Sveitsi oli voittanut kaikki "
+        "kuusi alkulohko-otteluaan ja päästänyt vain 6 maalia – "
+        "laajalti kutsuttu kaikkien aikojen parhaaksi Sveitsin joukkueeksi."
     ),
-    "Latvia vs Austria": (
-        "Austria beat Latvia 6–1 at the 2025 Worlds to grab the last quarterfinal spot from Group A — "
-        "Austria's first World Championship quarterfinal appearance since 1994."
+    "Latvia vs Itävalta": (
+        "Itävalta voitti Latvian 6–1 vuoden 2025 MM-kisoissa ja nappasi viimeisen "
+        "puolivälieräpaikan A-lohkosta – Itävallan ensimmäinen MM-puolivälierapaikka sitten vuoden 1994."
     ),
-    "Hungary vs Great Britain": (
-        "Great Britain won the 1936 Olympic gold by beating Canada — ending Canada's 20-game "
-        "Olympic unbeaten streak. Hungary's best-ever World Championship finish was 5th place, back in 1937."
+    "Unkari vs Iso-Britannia": (
+        "Iso-Britannian 1936 olympiavoitto tuli Kanadaa vastaan – katkaisten Kanadan "
+        "20 ottelun voittamattoman putken olympialaisissa. "
+        "Unkarin paras MM-sijoitus on 5. sija vuodelta 1937."
     ),
-    "Austria vs Switzerland": (
-        "Austria reached the 2025 quarterfinals for the first time in 31 years — then faced "
-        "Switzerland and lost 6–0, outshouted 40–13. Still, just getting there was historic."
+    "Itävalta vs Sveitsi": (
+        "Itävalta eteni vuoden 2025 puolivälieriin ensimmäistä kertaa 31 vuoteen – "
+        "kohtasi sitten Sveitsin ja hävisi 0–6, häviäen laukauksissakin 13–40. "
+        "Silti pelkkä paikalle pääseminen oli historiallista."
     ),
-    "United States vs Germany": (
-        "Germany beat the USA 4–3 in OT in the 2023 semifinal — a result so shocking it made "
-        "international headlines. Frederik Tiffels scored the winner at 2:28 of overtime."
+    "Yhdysvallat vs Saksa": (
+        "Saksa voitti USA:n 4–3 jatkoajalla vuoden 2023 välierissä – tulos, "
+        "joka teki kansainvälisiä uutisia. Frederik Tiffels teki ratkaisevan maalin "
+        "2.28:ssä jatkoajalla."
     ),
-    "Finland vs Latvia": (
-        "Latvia's first World Championship medal came in 2023 after debuting at the tournament "
-        "in 1997 — a 26-year wait. Their best previous finish before bronze was 7th place."
+    "Suomi vs Latvia": (
+        "Latvian ensimmäinen MM-mitali tuli 2023 – vaikka Latvia debytoi turnauksessa "
+        "vuonna 1997. Se merkitsi 26 vuoden odottamista. Ennen pronssia paras sijoitus oli seitsemäs."
     ),
-    "Switzerland vs Great Britain": (
-        "Great Britain is the only team to win Olympic, World Championship, AND European Championship "
-        "gold in the same calendar year (1936). Switzerland, the 2026 host, has never won World gold."
+    "Sveitsi vs Iso-Britannia": (
+        "Iso-Britannia on ainoa joukkue, joka on voittanut olympia-, MM- ja EM-kultaa "
+        "samana kalenterivuonna (1936). Sveitsi, vuoden 2026 isäntämaa, "
+        "ei ole koskaan voittanut MM-kultaa."
     ),
-    "Germany vs Hungary": (
-        "Hungary's all-time youngest World Championship scorer, Sándor Miklós, was just 15 in 1931 — "
-        "a record that still stands nearly 95 years later. Germany beat Hungary 6–1 in 2025."
+    "Saksa vs Unkari": (
+        "Unkarin kaikkien aikojen nuorin MM-maalintekijä Sándor Miklós oli vain 15-vuotias "
+        "vuonna 1931 – ennätys, joka seisoo lähes 95 vuotta myöhemmin. "
+        "Saksa voitti Unkarin 6–1 vuonna 2025."
     ),
-    "Finland vs Great Britain": (
-        "Finland beat Great Britain 8–0 at the 2024 Worlds. But it was Great Britain who shocked "
-        "the hockey world in 1936 by ending Canada's 20-game Olympic winning streak."
+    "Suomi vs Iso-Britannia": (
+        "Suomi voitti Iso-Britannian 8–0 vuoden 2024 MM-kisoissa. Mutta se oli Iso-Britannia, "
+        "joka järkytti jääkiekkomaailmaa 1936 katkaisten Kanadan 20 ottelun olympiavoittoputken."
     ),
-    "United States vs Latvia": (
-        "Latvia beat the USA 4–3 in OT in the 2023 bronze medal game — Latvia's first EVER "
-        "IIHF medal. The Latvian government declared a national holiday. The Americans went home empty-handed."
+    "Yhdysvallat vs Latvia": (
+        "Latvia voitti USA:n 4–3 jatkoajalla 2023 pronssiottelussa – Latvian ENSIMMÄINEN "
+        "koskaan IIHF-mitali. Latvian hallitus julisti kansallisen vapaapäivän. "
+        "Amerikkalaiset lähtivät tyhjin käsin."
     ),
-    "Switzerland vs Hungary": (
-        "Switzerland beat Hungary 10–0 at the 2025 Worlds, with 41-year-old Andres Ambühl "
-        "scoring a hat trick — the oldest player ever to do so at a World Championship."
+    "Sveitsi vs Unkari": (
+        "Sveitsi voitti Unkarin 10–0 vuoden 2025 MM-kisoissa, kun 41-vuotias Andres Ambühl "
+        "teki hattutempun – vanhin pelaaja koskaan, joka on tehnyt hattutempun MM-kisoissa."
     ),
-    "Great Britain vs Latvia": (
-        "Great Britain's 1936 squad was largely made up of Canadian-born players with British "
-        "ancestry — a controversy at the time. Latvia's 2023 bronze squad was entirely home-grown."
+    "Iso-Britannia vs Latvia": (
+        "Iso-Britannian 1936 joukkue koostui suurelta osin Kanadassa syntyneistä pelaajista, "
+        "joilla oli brittisukujuuri – kiistanalainen asia tuolloin. "
+        "Latvian 2023 pronssiryhmä oli kokonaan kotikasvattainen."
     ),
-    "Finland vs Austria": (
-        "Austria beat Finland 3–2 at the 2024 World Championship with Benjamin Baumgartner "
-        "scoring with just ONE SECOND left on the clock — Austria's first win over Finland "
-        "in 10 World Championship meetings stretching back to 1957."
+    "Suomi vs Itävalta": (
+        "Itävalta voitti Suomen 3–2 vuoden 2024 MM-kisoissa, kun Benjamin Baumgartner "
+        "teki maalin YHTÄ SEKUNTIA ennen loppua – Itävallan ensimmäinen voitto Suomesta "
+        "10 MM-kohtaamisessa vuodesta 1957."
     ),
-    "United States vs Hungary": (
-        "Hungary's best-ever World Championship finish was 5th place in 1937 — before the USA "
-        "had even won their first gold (1933). Hungary's modern return has been tougher going."
+    "Yhdysvallat vs Unkari": (
+        "Unkarin paras MM-sijoitus koskaan on 5. sija vuodelta 1937 – ajalta ennen kuin "
+        "USA oli edes voittanut ensimmäisen kultansa (1933). "
+        "Unkarin moderni paluu on ollut paljon hankalampi."
     ),
-    "Germany vs Great Britain": (
-        "Great Britain swept the 1936 triple (Olympics, Worlds, Europeans) with a roster full "
-        "of Canadians holding British passports. Germany, by contrast, reached their first "
-        "modern World Championship final in 2023."
+    "Saksa vs Iso-Britannia": (
+        "Iso-Britannia pyyhki pöytää 1936 kolmoismestaruudella kanadalaisilla briteillä. "
+        "Saksa taas eteni ensimmäiseen moderniin MM-finaaliinsa vasta 2023 – "
+        "93 vuotta Iso-Britannian kolmoisvoiton jälkeen."
     ),
-    "Hungary vs Latvia": (
-        "Latvia's 2023 bronze was won with a completely home-grown squad — no NHL stars, "
-        "no import players. Hungary's 1931 teenager Sándor Miklós remains the youngest scorer "
-        "in World Championship history."
+    "Unkari vs Latvia": (
+        "Latvian 2023 pronssi voitettiin täysin kotikasvattisella joukkueella – "
+        "ei NHL-tähtiä, ei tuontipelaajia. Unkarin 15-vuotias Sándor Miklós "
+        "on edelleen MM-historian nuorin maalintekijä vuodelta 1931."
     ),
-    "United States vs Austria": (
-        "Austria qualified for the 2025 quarterfinals for the first time since 1994 — a "
-        "31-year wait. The USA entered 2025 as the team that hadn't won gold since 1933. "
-        "Both had long droughts — the USA finally ended theirs."
+    "Yhdysvallat vs Itävalta": (
+        "Itävalta selvisi vuoden 2025 puolivälieriin ensimmäistä kertaa sitten 1994 – "
+        "31 vuoden tauko. USA tuli kisoihin joukkueena, joka ei ollut voittanut kultaa sitten 1933. "
+        "Molemmat odottivat pitkään – USA katkaisi kuivakkauden ensin."
     ),
-    "Switzerland vs Finland": (
-        "Switzerland has been to the World Championship final three times without winning (2013, 2018, 2025). "
-        "Finland, the opponent on home ice in 2026, has won four times — including 2022."
+    "Sveitsi vs Suomi": (
+        "Sveitsi on pelannut MM-finaalissa kolmesti voittamatta kertaakaan (2013, 2018, 2025). "
+        "Suomi, vuoden 2026 kotikisaisäntä, on voittanut neljästi – mukaan lukien kotikentällä 2022."
     ),
 
     # ── Group B ──────────────────────────────────────────────────────────────
-    "Canada vs Sweden": (
-        "Sweden beat Canada 4–2 for bronze at 2024 Worlds — Sweden's first medal since "
-        "winning back-to-back golds in 2017 and 2018. Canada, with 28 World titles, left without a medal."
+    "Kanada vs Ruotsi": (
+        "Ruotsi voitti Kanadan 4–2 pronssiottelussa vuoden 2024 MM-kisoissa – "
+        "Ruotsin ensimmäinen mitali sitten peräkkäisten kultatittelien 2017 ja 2018. "
+        "Kanada, 28 MM-kullalla, lähti ilman mitalia."
     ),
-    "Czech Republic vs Denmark": (
-        "Denmark beat Canada 2–1 in the 2025 quarterfinals — widely called the greatest "
-        "upset in World Championship history. Two goals in the final three minutes. "
-        "Czech Republic beat Denmark 7–2 at those same Worlds."
+    "Tšekki vs Tanska": (
+        "Tanska voitti Kanadan 2–1 vuoden 2025 puolivälierissä – "
+        "laajalti kutsuttu MM-historian suurimmaksi yllätykseksi. "
+        "Kaksi maalia viimeisen kolmen minuutin aikana. Tšekki voitti Tanskan 7–2 samoissa kisoissa."
     ),
-    "Slovakia vs Norway": (
-        "Norway beat Canada 3–2 in a 2023 shootout — only the second time Norway had EVER "
-        "beaten Canada in senior World Championship play. The first was in 2000."
+    "Slovakia vs Norja": (
+        "Norja voitti Kanadan 3–2 rankkareissa vuonna 2023 – "
+        "vasta toinen kerta KOSKAAN, kun Norja oli voittanut Kanadan aikuisten MM-kisoissa. "
+        "Ensimmäinen kerta oli vuonna 2000."
     ),
-    "Italy vs Canada": (
-        "Italy's IIHF membership dates to 1924 — a year before Finland joined. They've been "
-        "playing hockey longer than most people realise. Canada has 28 World titles. Italy: 0."
+    "Italia vs Kanada": (
+        "Italian IIHF-jäsenyys on vuodelta 1924 – vuotta ennen kuin Suomi liittyi. "
+        "He ovat pelanneet jääkiekkoa pidempään kuin useimmat tajuavat. "
+        "Kanadalla on 28 MM-mestaruutta. Italialla: 0."
     ),
-    "Slovenia vs Czech Republic": (
-        "Czech Republic came back from 2–0 down to beat Slovenia 6–2 in 2023, with Dominik "
-        "Kubalík scoring a hat trick in the comeback. The Czechs won World gold the following year."
+    "Slovenia vs Tšekki": (
+        "Tšekki teki paluun 0–2 tappiotilanteesta voittoon 6–2 Sloveniaa vastaan 2023, "
+        "kun Dominik Kubalík teki hattutempun. Tšekit voittivat MM-kullan seuraavana vuonna."
     ),
-    "Italy vs Slovakia": (
-        "Italy has been an IIHF member since 1924 — 101 years — and has never won a "
-        "World Championship medal. Slovakia has been independent since 1993 and won gold in 2002."
+    "Italia vs Slovakia": (
+        "Italia on ollut IIHF:n jäsen vuodesta 1924 – 101 vuotta – "
+        "eikä ole koskaan voittanut MM-mitalia. "
+        "Slovakia on ollut itsenäinen vuodesta 1993 ja voitti MM-kullan jo 2002."
     ),
-    "Denmark vs Sweden": (
-        "Sweden leads their head-to-head 12–1 at World Championships. Denmark's only win: "
-        "4–3 in 2021 with Nicklas Jensen scoring a hat trick. Then in 2025, Denmark reached "
-        "their first-ever semifinal by shocking Canada."
+    "Tanska vs Ruotsi": (
+        "Ruotsi johtaa keskinäistä tilastoa 12–1 MM-kisoissa. Tanskan ainoa voitto: "
+        "4–3 vuonna 2021, Nicklas Jensenin hattutempulla. "
+        "Vuonna 2025 Tanska eteni ensimmäistä kertaa koskaan välieriin järkyttämällä Kanadan."
     ),
-    "Norway vs Slovenia": (
-        "Norway finished 4th at the 1951 World Championship — their best-ever result. "
-        "They've been chasing that podium for 75 years. Slovenia only debuted in the top division in 2021."
+    "Norja vs Slovenia": (
+        "Norja sijoittui neljänneksi vuoden 1951 MM-kisoissa – paras tulos ikinä. "
+        "He ovat jahdanneet palkintokoroketta 75 vuotta. "
+        "Slovenia debytoi pääsarjatasolla vasta 2021."
     ),
-    "Canada vs Denmark": (
-        "Denmark scored twice in the final THREE MINUTES to beat Canada 2–1 in the 2025 "
-        "quarterfinals — the biggest upset in World Championship history. Frederik Dichow "
-        "stopped 39 of 40 shots. Denmark had never been in a semifinal before."
+    "Kanada vs Tanska": (
+        "Tanska teki kaksi maalia viimeisen KOLMEN MINUUTIN aikana voittaakseen Kanadan 2–1 "
+        "vuoden 2025 puolivälierissä – MM-historian suurin yllätys. "
+        "Frederik Dichow torjui 39/40 laukausta. Tanska ei ollut koskaan aiemmin ollut välierissä."
     ),
-    "Sweden vs Czech Republic": (
-        "Czech Republic won the 2024 World Championship on home ice in Prague — only the "
-        "FIFTH nation ever to win the title on home soil. The tournament attracted a record "
-        "797,727 spectators — the most-attended World Championship ever."
+    "Ruotsi vs Tšekki": (
+        "Tšekki voitti vuoden 2024 MM-kullan kotikisoissa Prahassa – "
+        "vasta VIIDES maa koskaan voittamaan mestaruuden kotikentällä. "
+        "Turnauksella oli ennätyksellisesti 797 727 katsojaa – eniten koskaan."
     ),
-    "Italy vs Norway": (
-        "Italy has been in the IIHF since 1924 but competed mostly in lower divisions. "
-        "Norway finished 4th at the 1951 Worlds — their best result ever — and haven't "
-        "been that close to a medal since."
+    "Italia vs Norja": (
+        "Italia on ollut IIHF:n jäsen vuodesta 1924, mutta kilpaili pitkään alemmilla tasoilla. "
+        "Norja sijoittui neljänneksi 1951 MM-kisoissa – paras tulos ikinä – "
+        "eikä ole sen jälkeen päässyt lähelle mitalia."
     ),
     "Slovenia vs Slovakia": (
-        "Slovakia won their only World Championship gold in 2002 by beating Russia 4–3 in the final. "
-        "Peter Bondra, who scored the winner with 100 seconds left, said: "
-        "'This means more than a Stanley Cup to me.'"
+        "Slovakia voitti ainoan MM-kultansa 2002 kaatamalla Venäjän finaalissa 4–3. "
+        "Peter Bondra, joka teki ratkaisevan maalin 100 sekuntia ennen loppua, sanoi: "
+        "'Tämä merkitsee minulle enemmän kuin Stanley Cup.'"
     ),
-    "Czech Republic vs Italy": (
-        "Czech Republic's Jaromír Jágr scored at the 2015 World Championship aged 43 — breaking "
-        "Gordie Howe's record as the oldest scorer in tournament history. Italy debuted at "
-        "Worlds in 1930, before Jágr was even born."
+    "Tšekki vs Italia": (
+        "Tšekin Jaromír Jágr teki maalin 2015 MM-kisoissa 43-vuotiaana – "
+        "rikkoen Gordie Howen ennätyksen turnauksen vanhimpana maalintekijänä. "
+        "Italia debytoi MM-kisoissa 1930, ennen kuin Jágr oli edes syntynyt."
     ),
-    "Sweden vs Slovenia": (
-        "Slovenia only made their World Championship TOP DIVISION debut in 2021. "
-        "Sweden have been world champions 11 times. Yet Slovenia qualified for 2026 by staying up in 2025."
+    "Ruotsi vs Slovenia": (
+        "Slovenia debytoi MM-kisojen pääsarjassa vasta 2021. "
+        "Ruotsi on ollut maailmanmestari 11 kertaa. "
+        "Silti Slovenia selvisi vuoteen 2026 pysymällä pääsarjassa 2025."
     ),
-    "Canada vs Norway": (
-        "Norway beat Canada in a 2023 shootout — only their SECOND win over Canada in "
-        "World Championship history. Thomas Olsen scored the shootout winner. Canada has 28 world titles."
+    "Kanada vs Norja": (
+        "Norja voitti Kanadan rankkareissa 2023 – "
+        "vasta TOINEN kerta MM-historiassa. Thomas Olsen teki ratkaisevan rankkarin. "
+        "Kanadalla on 28 maailmanmestaruutta."
     ),
-    "Denmark vs Slovakia": (
-        "Denmark reached their first-ever World Championship SEMIFINAL in 2025 — hosted partly "
-        "in Danish Herning. The home crowd energy was credited as a key factor in their historic run."
+    "Tanska vs Slovakia": (
+        "Tanska eteni ensimmäistä kertaa koskaan MM-välieriin 2025 – "
+        "kisat pidettiin osin kotikisoina tanskalaisessa Herningissä. "
+        "Kotiottelun tunnelma oli avaintekijä historiallisessa putkessa."
     ),
-    "Canada vs Slovenia": (
-        "Slovenia's entire World Championship top-division history fits in a few years. "
-        "Canada's World Championship history spans over a CENTURY, with their first title in 1920."
+    "Kanada vs Slovenia": (
+        "Slovenian koko MM-pääsarjahistoria mahtuu muutamaan vuoteen. "
+        "Kanadan MM-historia ulottuu yli VUOSISADAN – "
+        "ensimmäinen mestaruus jo vuodelta 1920."
     ),
-    "Sweden vs Italy": (
-        "Italy has been an IIHF member for 101 years — longer than Sweden has held some of "
-        "their 11 World Championship titles. Sweden have 3× more titles than any other European nation."
+    "Ruotsi vs Italia": (
+        "Italia on ollut IIHF:n jäsen 101 vuotta – pidempään kuin Ruotsi on pitänyt "
+        "osan 11 MM-mestaruudestaan. "
+        "Ruotsilla on kolme kertaa enemmän mestaruuksia kuin millään muulla eurooppalaisella maalla."
     ),
-    "Denmark vs Slovenia": (
-        "Denmark's captain Frans Nielsen holds the record for most World Championship games "
-        "played by a Danish player. Slovenia's best-ever finish is 10th place — but they keep qualifying."
+    "Tanska vs Slovenia": (
+        "Tanskan kapteeni Frans Nielsen pitää ennätystä eniten MM-otteluita "
+        "pelanneena tanskalaisena. "
+        "Slovenian paras MM-sijoitus on 10. sija – mutta he jaksavat kelvata turnaukseen."
     ),
-    "Slovakia vs Czech Republic": (
-        "Slovakia won their only World gold in 2002 beating Russia — but have never beaten "
-        "Czech Republic in the World Championship final. The Czechs lead their head-to-head 25–5 all-time."
+    "Slovakia vs Tšekki": (
+        "Slovakia voitti ainoan MM-kultansa 2002 kaatamalla Venäjän – "
+        "mutta ei ole koskaan voittanut Tšekkiä MM-finaalissa. "
+        "Tšekit johtavat keskinäistä tilastoa 25–5."
     ),
-    "Norway vs Sweden": (
-        "Norway beat Canada in a 2023 shootout for only their second-ever win over the Canadians. "
-        "But against Sweden, Norway has never found that same magic — Sweden leads their "
-        "head-to-head heavily."
+    "Norja vs Ruotsi": (
+        "Norja voitti Kanadan rankkareissa 2023 – vasta toinen kerta koskaan. "
+        "Mutta Ruotsia vastaan Norja ei ole löytänyt samaa taikaa – "
+        "Ruotsi johtaa keskinäistä tilastoa ylivoimaisesti."
     ),
-    "Denmark vs Italy": (
-        "Denmark's greatest result came in 2025: first-ever semifinal. Italy's greatest result "
-        "came in 1994: 6th place. They've never met at the top division before — 2026 is a first."
+    "Tanska vs Italia": (
+        "Tanskan paras tulos syntyi 2025: ensimmäinen koskaan välierä. "
+        "Italian paras tulos syntyi 1994: kuudes sija. "
+        "He eivät ole aiemmin kohdanneet pääsarjatasolla – vuosi 2026 on ensimmäinen kerta."
     ),
-    "Slovakia vs Canada": (
-        "Slovakia beat Canada 4–3 in the 2012 World Championship QUARTERFINALS in a stunning "
-        "upset. Milan Handzuš scored the go-ahead goal with two minutes left. "
-        "Slovakia won their World gold in 2002 by beating Russia — a result Peter Bondra "
-        "said meant more to him than a Stanley Cup."
+    "Slovakia vs Kanada": (
+        "Slovakia voitti Kanadan 4–3 vuoden 2012 MM-puolivälierissä järkyttävässä yllätyksessä. "
+        "Milan Handzuš teki ratkaisevan maalin kaksi minuuttia ennen loppua. "
+        "Slovakia voitti MM-kullan 2002 kaatamalla Venäjän – Peter Bondra sanoi sen "
+        "merkitsevän hänelle enemmän kuin Stanley Cup."
     ),
-    "Czech Republic vs Norway": (
-        "The 2024 World Championship in Prague drew a record 797,727 fans — the most ever — "
-        "as Czech Republic won gold on home ice for the first time in history. "
-        "Norway, meanwhile, is still waiting for their first medal since 1951."
+    "Tšekki vs Norja": (
+        "Vuoden 2024 MM-kisat Prahassa keräsivät ennätyksellisesti 797 727 katsojaa – "
+        "kun Tšekki voitti kullan kotikentällä ensimmäistä kertaa historiassa. "
+        "Norja odottaa edelleen ensimmäistä mitaliaann sitten vuoden 1951."
     ),
-    "Slovenia vs Italy": (
-        "Both nations are relative newcomers to the elite division — Slovenia debuted at the "
-        "top level in 2021, Italy returned in 2026 after promotion. First-ever meeting "
-        "at the World Championship top division."
+    "Slovenia vs Italia": (
+        "Molemmat maat ovat suhteellisen uusia tulokkaita pääsarjatasolle – "
+        "Slovenia debytoi huippudivisioonassa 2021, Italia palasi 2026 nousun myötä. "
+        "Ensimmäinen koskaan kohtaaminen MM-kisojen pääsarjatasolla."
     ),
-    "Norway vs Denmark": (
-        "Denmark reached their first World Championship semifinal in 2025. Norway's best finish "
-        "remains 4th place in 1951 — 74 years ago. Both Nordic neighbours are hungry to go further."
+    "Norja vs Tanska": (
+        "Tanska eteni ensimmäistä kertaa koskaan MM-välieriin 2025. "
+        "Norjan paras sijoitus on edelleen neljäs sija vuodelta 1951 – 74 vuotta sitten. "
+        "Molemmat pohjoismaiset naapurit ovat nälkäisiä menemään pidemmälle."
     ),
-    "Sweden vs Slovakia": (
-        "Slovakia won their only World Championship gold in 2002 — on Swedish soil, in Gothenburg. "
-        "Peter Bondra's winner came with 100 seconds left. Sweden have never let them forget it."
+    "Ruotsi vs Slovakia": (
+        "Slovakia voitti ainoan MM-kultansa 2002 – Ruotsin maaperällä Göteborgissa. "
+        "Peter Bondran ratkaiseva maali tuli 100 sekuntia ennen loppua. "
+        "Ruotsi ei ole koskaan antanut heidän unohtaa sitä."
     ),
-    "Czech Republic vs Canada": (
-        "Canada has 28 World Championship golds. Czech Republic won their 7th in 2024 on home ice "
-        "in front of a record 797,727 fans — the most-attended tournament ever. "
-        "These two have met in some of the greatest finals in World Championship history."
+    "Tšekki vs Kanada": (
+        "Kanadalla on 28 MM-kultaa. Tšekki voitti seitsemännen kultansa 2024 kotikentällä "
+        "ennätyksellisen 797 727 katsojan edessä – kisojen kaikkien aikojen yleisöennätys. "
+        "Nämä kaksi ovat kohdanneet joissakin MM-historian suurimmista finaaleista."
+    ),
+    "Saksa vs Itävalta": (
+        "Saksa eteni ensimmäistä kertaa 70 vuoteen MM-finaaliin 2023, häviten Kanadalle. "
+        "Itävalta, saksankielinen naapurimaa, on pomppinut pääsarjan ja I-divisioonan "
+        "välillä kuusi kertaa vuodesta 2000 – yksikään turnauksessa mukana oleva joukkue "
+        "ei ole pudonnut useammin."
+    ),
+    "Sveitsi vs Latvia": (
+        "Latvia teki yhden MM-historian suurimmista yllätyksistä vuoden 2021 turnauksessa "
+        "Riiassa – voittamalla Kanadan 2–1 kotikentällään puolivälierissä. "
+        "Sveitsi, joka on päässyt kolmeen MM-finaaliin voittamatta kertaakaan kultaa, "
+        "tietää paremmin kuin useimmat: Latviaa ei pidä aliarvioida."
     ),
 }

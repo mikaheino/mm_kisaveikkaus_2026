@@ -45,12 +45,12 @@ _TARGET_MS = calendar.timegm(_LOCK_DATETIME.timetuple()) * 1000
 is_locked = datetime.utcnow() >= _LOCK_DATETIME
 
 _FLAGS = {
-    "Austria": "🇦🇹", "Canada": "🇨🇦", "Czech Republic": "🇨🇿",
-    "Denmark": "🇩🇰", "Finland": "🇫🇮", "Germany": "🇩🇪",
-    "Great Britain": "🇬🇧", "Hungary": "🇭🇺", "Italy": "🇮🇹",
-    "Latvia": "🇱🇻", "Norway": "🇳🇴", "Slovakia": "🇸🇰",
-    "Slovenia": "🇸🇮", "Sweden": "🇸🇪", "Switzerland": "🇨🇭",
-    "United States": "🇺🇸",
+    "Itävalta": "🇦🇹", "Kanada": "🇨🇦", "Tšekki": "🇨🇿",
+    "Tanska": "🇩🇰", "Suomi": "🇫🇮", "Saksa": "🇩🇪",
+    "Iso-Britannia": "🇬🇧", "Unkari": "🇭🇺", "Italia": "🇮🇹",
+    "Latvia": "🇱🇻", "Norja": "🇳🇴", "Slovakia": "🇸🇰",
+    "Slovenia": "🇸🇮", "Ruotsi": "🇸🇪", "Sveitsi": "🇨🇭",
+    "Yhdysvallat": "🇺🇸",
 }
 
 TEAMS = sorted(_FLAGS.keys())
@@ -62,6 +62,15 @@ _PLAYOFF_COLS = [
     "FINALIST_1", "FINALIST_2",
     "CHAMPION", "TOP_SCORER", "TOP_POINTS",
 ]
+
+
+_FI_DAYS = ["Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai","Sunnuntai"]
+_FI_MONTHS = ["","tammikuuta","helmikuuta","maaliskuuta","huhtikuuta","toukokuuta","kesäkuuta",
+               "heinäkuuta","elokuuta","syyskuuta","lokakuuta","marraskuuta","joulukuuta"]
+
+def _fi_date(d) -> str:
+    dt = pd.to_datetime(str(d))
+    return f"{_FI_DAYS[dt.weekday()]} {dt.day}. {_FI_MONTHS[dt.month]}"
 
 
 def flagged(match: str) -> str:
@@ -85,7 +94,7 @@ user_email = (
 )
 display_name = email_to_display_name(user_email)
 
-st.subheader(f"Welcome, {display_name}")
+st.subheader(f"Tervetuloa, {display_name}")
 
 # ── Live countdown timer ──────────────────────────────────────────────────────
 # Rendered via components.html so the <script> actually executes
@@ -97,7 +106,7 @@ components.html(
                 font-family:'Source Sans Pro',sans-serif;color:white;">
       <div style="font-size:0.78rem;color:#aab4c8;letter-spacing:1px;
                   text-transform:uppercase;margin-bottom:4px;">
-        ⏱ Veikkaukset lukittuvat
+        Veikkaukset lukittuvat
       </div>
       <div id="cd-timer"
            style="font-size:1.6rem;font-weight:700;color:#4da6ff;
@@ -117,7 +126,7 @@ components.html(
         var diff = target - Date.now();
         if (diff <= 0) {{
           el.style.color = '#ff6b6b';
-          el.textContent = '🔒 Veikkaukset lukittu';
+          el.textContent = 'Veikkaukset lukittu';
           return;
         }}
         var d = Math.floor(diff / 86400000);
@@ -138,7 +147,7 @@ components.html(
 )
 
 if is_locked:
-    st.warning("⛔ Veikkaukset on lukittu – turnaus on alkanut. Ennustuksia ei voi enää muokata.")
+    st.warning("Veikkaukset on lukittu – turnaus on alkanut. Ennustuksia ei voi enää muokata.")
     st.stop()
 
 # ── Load schedule ─────────────────────────────────────────────────────────────
@@ -178,46 +187,6 @@ except Exception:
 
 playoff_new = len(playoff_existing) == 0
 
-# ── Progress calculation (73 total: 56 group + 17 playoff) ───────────────────
-group_filled = sum(
-    1 for gid in schedule_df["ID"].astype(int)
-    if existing_preds.get(gid, (None, None))[0] is not None
-)
-playoff_filled = sum(1 for k in _PLAYOFF_COLS if playoff_existing.get(k))
-total_filled = group_filled + playoff_filled
-TOTAL_PREDS = 73
-pct = total_filled / TOTAL_PREDS
-
-if pct >= 1.0:
-    _bar_color, _ms_icon, _ms_text = "#ffd700", "🏆", "Täydelliset veikkaukset!"
-elif pct >= 0.75:
-    _bar_color, _ms_icon, _ms_text = "#adff2f", "🥇", "75 % täynnä – hyvää menoa!"
-elif pct >= 0.5:
-    _bar_color, _ms_icon, _ms_text = "#17a2b8", "🥈", "Puolet veikkauksia tehty!"
-elif pct >= 0.25:
-    _bar_color, _ms_icon, _ms_text = "#4da6ff", "🎯", "Hyvä alku – 25 % valmis!"
-else:
-    _bar_color, _ms_icon, _ms_text = "#6c757d", "", ""
-
-st.markdown(
-    f"<style>[data-testid='stProgressBar']>div>div"
-    f"{{background:{_bar_color}!important;}}</style>",
-    unsafe_allow_html=True,
-)
-col_pb, col_cnt = st.columns([4, 1])
-with col_pb:
-    st.progress(pct)
-with col_cnt:
-    st.caption(f"{total_filled} / {TOTAL_PREDS}")
-
-if _ms_text:
-    st.markdown(
-        f"<div style='background:rgba(0,0,0,0.45);border-left:4px solid {_bar_color};"
-        f"border-radius:6px;padding:8px 14px;margin-bottom:0.5rem;'>"
-        f"<span style='color:{_bar_color};font-weight:700;font-size:1.1rem;'>{_ms_icon}</span>"
-        f"&nbsp;<span style='color:white;'>{_ms_text}</span></div>",
-        unsafe_allow_html=True,
-    )
 
 # ── Incomplete warning ────────────────────────────────────────────────────────
 _unfilled_ids = [
@@ -225,18 +194,15 @@ _unfilled_ids = [
     if existing_preds.get(gid, (None, None))[0] is None
 ]
 if existing_preds and _unfilled_ids:
-    st.warning(f"⚠️ {len(_unfilled_ids)} ottelulla ei ole vielä ennustetta.")
+    st.warning(f"{len(_unfilled_ids)} ottelulla ei ole vielä ennustetta.")
 
 # ── Group-stage section ───────────────────────────────────────────────────────
-st.subheader("🏒 Alkulohkon ottelut")
-
-if not is_new:
-    st.markdown(
-        "<style>[data-testid='stFormSubmitButton']>button{"
-        "background-color:#c0392b!important;"
-        "border-color:#922b21!important;color:white!important;}</style>",
-        unsafe_allow_html=True,
-    )
+st.subheader("Alkulohkon ottelut")
+st.caption(
+    "Ennusta jokaisen ottelun lopputulos (koti – vieras). "
+    "Voit tallentaa veikkaukset osittain ja täydentää ne myöhemmin – "
+    "kaikki veikkaukset lukittuvat turnauksen käynnistyessä."
+)
 
 dates = sorted(schedule_df["MATCH_DAY"].unique())
 all_inputs: dict[int, tuple] = {}
@@ -249,17 +215,17 @@ with st.form("prediction_form"):
         day_complete = bool(existing_preds) and all(
             existing_preds.get(gid, (None, None))[0] is not None for gid in day_ids
         )
-        date_label = pd.to_datetime(str(date)).strftime("%A, %d %b")
+        date_label = _fi_date(date)
         label = (
-            f"{date_label} — {len(day_df)} games  ✓"
+            f"{date_label} — {len(day_df)} ottelua  ✓"
             if day_complete
-            else f"{date_label} — {len(day_df)} games"
+            else f"{date_label} — {len(day_df)} ottelua"
         )
 
         with st.expander(label, expanded=not day_complete):
             hdr1, hdr2, hdr3 = st.columns([5, 1, 1])
-            hdr2.caption("Home")
-            hdr3.caption("Away")
+            hdr2.caption("Koti")
+            hdr3.caption("Vieras")
             for _, row in day_df.iterrows():
                 gid = int(row["ID"])
                 ep = existing_preds.get(gid, (None, None))
@@ -267,16 +233,22 @@ with st.form("prediction_form"):
                 a_def = str(int(ep[1])) if ep[1] is not None else ""
                 c1, c2, c3 = st.columns([5, 1, 1])
                 c1.write(flagged(row["MATCH"]))
-                fact = MATCH_TRIVIA.get(row["MATCH"], "")
+                _m = row["MATCH"]
+                _parts = _m.split(" vs ")
+                fact = MATCH_TRIVIA.get(_m) or MATCH_TRIVIA.get(f"{_parts[1]} vs {_parts[0]}", "")
                 if fact:
-                    c1.caption(fact)
+                    c1.markdown(
+                        f"<span style='font-size:0.75rem;font-style:italic;"
+                        f"color:rgba(180,200,240,0.70);'>{fact}</span>",
+                        unsafe_allow_html=True,
+                    )
                 home_in = c2.text_input("H", value=h_def, key=f"h_{gid}",
                                         label_visibility="collapsed")
                 away_in = c3.text_input("A", value=a_def, key=f"a_{gid}",
                                         label_visibility="collapsed")
                 all_inputs[gid] = (home_in, away_in)
 
-    submit_label = "Save predictions" if is_new else "Update predictions"
+    submit_label = "Tallenna veikkaukset" if is_new else "Päivitä veikkaukset"
     submit = st.form_submit_button(submit_label, type="primary")
 
 # ── Handle group-stage submission ─────────────────────────────────────────────
@@ -333,7 +305,7 @@ if submit:
         ).collect()
         if skipped:
             st.warning(
-                f"⚠️ Tallennettu, mutta {len(skipped)} ottelulla ei ennustetta: "
+                f"Tallennettu, mutta {len(skipped)} ottelulla ei ennustetta: "
                 f"{', '.join(skipped[:5])}{'...' if len(skipped) > 5 else ''}"
             )
         else:
@@ -344,23 +316,11 @@ if submit:
 
 # ── Playoff predictions section ───────────────────────────────────────────────
 st.divider()
-st.subheader("💎 Veikkaukset: pudotuspelit")
-
-st.markdown(
-    """
-    <div style="background:rgba(0,0,0,0.35);border-radius:8px;padding:10px 16px;
-                margin-bottom:1rem;font-size:0.87rem;color:#ccd6e8;line-height:1.8;">
-      🔹 <b>8 puolivälieräjoukkuetta</b> &nbsp;·&nbsp;
-         <b>4 välieräjoukkuetta</b> &nbsp;·&nbsp;
-         <b>2 finalistia</b> &nbsp;·&nbsp;
-         🥇 <b>Mestari</b><br>
-      🔹 <b>Maalientekijä</b> &amp; <b>Pistepörssin voittaja</b><br>
-      <span style="color:#aab4c8;">
-        Näin saat pudotuspelit mukaan heti, vaikka joukkueita ei vielä tiedetä.
-      </span>
-    </div>
-    """,
-    unsafe_allow_html=True,
+st.subheader("Pudotuspeliveikkaukset")
+st.caption(
+    "Alkulohkon tulosten lisäksi haluamme sinun ennustavan pudotuspeleihin "
+    "etenevät joukkueet jokaiselle kierrokselle sekä mestarin. "
+    "Lisäksi ennusta turnauksen paras maalintekijä ja pistepörssin voittaja."
 )
 
 # ── Helpers for multiselect defaults ─────────────────────────────────────────
@@ -381,7 +341,7 @@ def _str_default(key: str) -> str:
 
 
 with st.form("playoff_form"):
-    st.markdown("**Puolivälierät – valitse 8 joukkuetta** *(1 p / kpl, max 8)*")
+    st.markdown("**Puolivälierät – valitse 8 joukkuetta**")
     qf_teams = st.multiselect(
         "Puolivälieräjoukkueet",
         options=TEAMS,
@@ -391,7 +351,7 @@ with st.form("playoff_form"):
         label_visibility="collapsed",
     )
 
-    st.markdown("**Välierät – valitse 4 joukkuetta** *(3 p / kpl, max 12)*")
+    st.markdown("**Välierät – valitse 4 joukkuetta**")
     sf_teams = st.multiselect(
         "Välieräjoukkueet",
         options=TEAMS,
@@ -401,7 +361,7 @@ with st.form("playoff_form"):
         label_visibility="collapsed",
     )
 
-    st.markdown("**Finalistit – valitse 2 joukkuetta** *(5 p / kpl, max 10)*")
+    st.markdown("**Finalistit – valitse 2 joukkuetta**")
     f_teams = st.multiselect(
         "Finalistit",
         options=TEAMS,
@@ -411,7 +371,7 @@ with st.form("playoff_form"):
         label_visibility="collapsed",
     )
 
-    st.markdown("**🥇 Mestari** *(10 p)*")
+    st.markdown("**Mestari**")
     _champ_idx = 0
     _champ_saved = playoff_existing.get("CHAMPION")
     if _champ_saved and _champ_saved in TEAMS:
@@ -437,7 +397,7 @@ with st.form("playoff_form"):
         key="ti_points",
     )
 
-    _po_label = "Save playoff predictions" if playoff_new else "Update playoff predictions"
+    _po_label = "Tallenna pudotuspeliveikkaukset" if playoff_new else "Päivitä pudotuspeliveikkaukset"
     playoff_submit = st.form_submit_button(_po_label, type="primary")
 
 # ── Handle playoff submission ─────────────────────────────────────────────────

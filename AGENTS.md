@@ -81,7 +81,7 @@ https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependen
 
 # Don'ts
 
-- **Never bypass Snowflake RBAC.** All database actions must go through the assigned role (`MM_KISAVEIKKAUS_PLAYER` or `MM_KISAVEIKKAUS_ADMIN`). Never use `ACCOUNTADMIN` for app queries.
+- **Never bypass Snowflake RBAC.** All database actions must go through the assigned role (`MM_KISAVEIKKAUS_PLAYER_ROLE` or `MM_KISAVEIKKAUS_ADMIN_ROLE`). Never use `ACCOUNTADMIN` for app queries.
 - **Never commit credentials or `.env` files.** The Snowflake connection is handled by `get_active_session()` in production and `MockSession` locally — no hardcoded connection strings.
 - **Never run destructive SQL (`DROP`, `TRUNCATE`, `DELETE`) in production** without explicit user instruction and confirmation.
 - **Never add packages to `environment.yml`** unless they exist in the Snowflake Anaconda Channel (https://repo.anaconda.com/pkgs/snowflake/). No PyPI packages in production.
@@ -100,7 +100,7 @@ https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependen
 | Warehouse | `MM_KISAVEIKKAUS_WH` (XS, auto-suspend 60s) |
 | Stage | `MM_KISAVEIKKAUS_STAGE` |
 | App object | `MM_KISAVEIKKAUS_APP` |
-| Player role | `MM_KISAVEIKKAUS_PLAYER_ROLE` → DB role `MM_KISAVEIKKAUS_PLAYER` |
+| Player role | `MM_KISAVEIKKAUS_PLAYER_ROLE` → DB role `MM_KISAVEIKKAUS_USER` |
 | Admin role | `MM_KISAVEIKKAUS_ADMIN_ROLE` → DB role `MM_KISAVEIKKAUS_ADMIN` |
 
 ### Key tables
