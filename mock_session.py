@@ -48,6 +48,17 @@ RESULTS_DF["HOME_TEAM_GOALS"] = RESULTS_DF["ID"].map(lambda i: _RESULTS.get(i, (
 RESULTS_DF["AWAY_TEAM_GOALS"] = RESULTS_DF["ID"].map(lambda i: _RESULTS.get(i, (None, None))[1])
 RESULTS_DF["MATCH"] = SCHEDULE_DF["MATCH"]
 
+# ── Playoff predictions table ────────────────────────────────────────────────
+
+_PLAYOFF_DF = pd.DataFrame(columns=[
+    "USER_EMAIL",
+    "QF_TEAM_1", "QF_TEAM_2", "QF_TEAM_3", "QF_TEAM_4",
+    "QF_TEAM_5", "QF_TEAM_6", "QF_TEAM_7", "QF_TEAM_8",
+    "SF_TEAM_1", "SF_TEAM_2", "SF_TEAM_3", "SF_TEAM_4",
+    "FINALIST_1", "FINALIST_2",
+    "CHAMPION", "TOP_SCORER", "TOP_POINTS", "INSERTED",
+])
+
 # ── Shared predictions table ─────────────────────────────────────────────────
 
 MOCK_CURRENT_USER = "test.user@recordlydata.com"
@@ -104,7 +115,7 @@ class MockSession:
     """Mimics the subset of Snowpark Session API used by the app."""
 
     def sql(self, query: str) -> _MockResult:
-        global _PREDICTIONS_DF
+        global _PREDICTIONS_DF, _PLAYOFF_DF
         q = query.upper()
 
         # ── CURRENT_USER ────────────────────────────────────────────────
@@ -117,6 +128,7 @@ class MockSession:
                 "MM_KISAVEIKKAUS_RESULTS",
                 "MM_KISAVEIKKAUS_SCHEDULE",
                 "MM_KISAVEIKKAUS_PREDICTIONS",
+                "MM_KISAVEIKKAUS_PLAYOFF_PREDICTIONS",
             ]
             if "LIKE '" in query:
                 like_val = query.split("LIKE '")[1].split("'")[0]
@@ -124,6 +136,39 @@ class MockSession:
                 table_names = [n for n in table_names if like_val in n.upper()]
             df = pd.DataFrame({"name": table_names})
             return _MockResult(df)
+
+        # ── DELETE playoff predictions ──────────────────────────────────
+        if "DELETE" in q and "PLAYOFF_PREDICTIONS" in q:
+            email = query.split("'")[1].lower()
+            _PLAYOFF_DF = _PLAYOFF_DF[
+                _PLAYOFF_DF["USER_EMAIL"] != email
+            ].reset_index(drop=True)
+            return _MockResult(pd.DataFrame({"rows_deleted": [0]}))
+
+        # ── INSERT playoff predictions ──────────────────────────────────
+        if "INSERT" in q and "PLAYOFF_PREDICTIONS" in q:
+            import re
+            cols_str = query.split("(")[1].split(")")[0]
+            cols = [c.strip() for c in cols_str.split(",")]
+            values_str = query.split("VALUES")[1]
+            tuples = re.findall(r"\(([^)]+)\)", values_str)
+            new_rows = []
+            for t in tuples:
+                parts = [p.strip().strip("'") for p in t.split(",")]
+                row_dict = {}
+                for idx, col in enumerate(cols):
+                    row_dict[col] = None if parts[idx].upper() == "NULL" else parts[idx]
+                new_rows.append(row_dict)
+            _PLAYOFF_DF = pd.concat(
+                [_PLAYOFF_DF, pd.DataFrame(new_rows)], ignore_index=True
+            )
+            return _MockResult(pd.DataFrame({"rows_inserted": [len(new_rows)]}))
+
+        # ── SELECT playoff predictions ──────────────────────────────────
+        if "PLAYOFF_PREDICTIONS" in q:
+            email = query.split("'")[1].lower() if "'" in query else MOCK_CURRENT_USER
+            filtered = _PLAYOFF_DF[_PLAYOFF_DF["USER_EMAIL"] == email]
+            return _MockResult(filtered.copy())
 
         # ── DELETE predictions ──────────────────────────────────────────
         if "DELETE" in q and "MM_KISAVEIKKAUS_PREDICTIONS" in q:
@@ -147,8 +192,8 @@ class MockSession:
                     "ID": int(parts[1]),
                     "MATCH_DAY": parts[2],
                     "MATCH": parts[3],
-                    "HOME_TEAM_GOALS": int(parts[4]),
-                    "AWAY_TEAM_GOALS": int(parts[5]),
+                    "HOME_TEAM_GOALS": None if parts[4].upper() == "NULL" else int(parts[4]),
+                    "AWAY_TEAM_GOALS": None if parts[5].upper() == "NULL" else int(parts[5]),
                     "INSERTED": parts[6],
                 })
             _PREDICTIONS_DF = pd.concat(
