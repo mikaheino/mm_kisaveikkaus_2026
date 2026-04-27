@@ -2,6 +2,7 @@ import base64
 import calendar
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime
 from trivia import MATCH_TRIVIA
@@ -87,10 +88,13 @@ display_name = email_to_display_name(user_email)
 st.subheader(f"Welcome, {display_name}")
 
 # ── Live countdown timer ──────────────────────────────────────────────────────
-st.markdown(
+# Rendered via components.html so the <script> actually executes
+# (st.markdown sanitizes <script> tags out, so JS would never run).
+components.html(
     f"""
     <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.15);
-                border-radius:10px;padding:12px 20px;text-align:center;margin-bottom:1rem;">
+                border-radius:10px;padding:12px 20px;text-align:center;
+                font-family:'Source Sans Pro',sans-serif;color:white;">
       <div style="font-size:0.78rem;color:#aab4c8;letter-spacing:1px;
                   text-transform:uppercase;margin-bottom:4px;">
         ⏱ Veikkaukset lukittuvat
@@ -130,7 +134,7 @@ st.markdown(
     }})();
     </script>
     """,
-    unsafe_allow_html=True,
+    height=110,
 )
 
 if is_locked:
@@ -441,7 +445,10 @@ if playoff_submit:
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def _s(v) -> str:
-        return f"'{v}'" if v else "NULL"
+        if not v:
+            return "NULL"
+        # Escape single quotes for safe SQL string literal
+        return "'" + str(v).replace("'", "''") + "'"
 
     qf_v = (list(qf_teams) + [None] * 8)[:8]
     sf_v = (list(sf_teams) + [None] * 4)[:4]
