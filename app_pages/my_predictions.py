@@ -237,9 +237,14 @@ with st.form("prediction_form"):
                 _parts = _m.split(" vs ")
                 fact = MATCH_TRIVIA.get(_m) or MATCH_TRIVIA.get(f"{_parts[1]} vs {_parts[0]}", "")
                 if fact:
+                    # Escape ":" and "[" so Streamlit's :emoji:/:color[text] markdown
+                    # directives can't truncate the styled span (e.g. "IIHF:n jäsen…").
+                    safe_fact = fact.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    safe_fact = safe_fact.replace(":", "&#58;").replace("[", "&#91;")
                     c1.markdown(
-                        f"<span style='font-size:0.75rem;font-style:italic;"
-                        f"color:rgba(180,200,240,0.70);'>{fact}</span>",
+                        f"<div style='font-size:0.75rem;font-style:italic;"
+                        f"color:rgba(180,200,240,0.70);line-height:1.35;"
+                        f"margin:0 0 0.25rem 0;'>{safe_fact}</div>",
                         unsafe_allow_html=True,
                     )
                 home_in = c2.text_input("H", value=h_def, key=f"h_{gid}",
