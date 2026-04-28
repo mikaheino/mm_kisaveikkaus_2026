@@ -297,8 +297,8 @@ if submit:
         ).collect()
         values_parts = []
         for _, r in final_df.iterrows():
-            h_sql = "NULL" if r["HOME_TEAM_GOALS"] is None else str(int(r["HOME_TEAM_GOALS"]))
-            a_sql = "NULL" if r["AWAY_TEAM_GOALS"] is None else str(int(r["AWAY_TEAM_GOALS"]))
+            h_sql = "NULL" if pd.isna(r["HOME_TEAM_GOALS"]) else str(int(r["HOME_TEAM_GOALS"]))
+            a_sql = "NULL" if pd.isna(r["AWAY_TEAM_GOALS"]) else str(int(r["AWAY_TEAM_GOALS"]))
             values_parts.append(
                 f"('{r['USER_EMAIL']}', {int(r['ID'])}, '{r['MATCH_DAY']}', "
                 f"'{r['MATCH']}', {h_sql}, {a_sql}, '{now_str}')"

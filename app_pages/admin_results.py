@@ -134,8 +134,14 @@ with st.form("results_form"):
             hdr3.caption("Vieras")
             for _, row in day_df.iterrows():
                 gid = int(row["ID"])
-                h_def = str(int(row["HOME_TEAM_GOALS"])) if not pd.isna(row["HOME_TEAM_GOALS"]) else ""
-                a_def = str(int(row["AWAY_TEAM_GOALS"])) if not pd.isna(row["AWAY_TEAM_GOALS"]) else ""
+                try:
+                    h_def = "" if pd.isna(row["HOME_TEAM_GOALS"]) else str(int(row["HOME_TEAM_GOALS"]))
+                except (ValueError, TypeError):
+                    h_def = ""
+                try:
+                    a_def = "" if pd.isna(row["AWAY_TEAM_GOALS"]) else str(int(row["AWAY_TEAM_GOALS"]))
+                except (ValueError, TypeError):
+                    a_def = ""
                 c1, c2, c3 = st.columns([5, 1, 1])
                 c1.write(flagged(row["MATCH"]))
                 home = c2.text_input("H", value=h_def, key=f"rh_{gid}",
@@ -163,9 +169,11 @@ if submit:
         try:
             for gid, (home, away) in parsed.items():
                 session.sql(
-                    f"UPDATE {RESULTS_TABLE} "
-                    f"SET HOME_TEAM_GOALS = {home}, AWAY_TEAM_GOALS = {away} "
-                    f"WHERE ID = {gid}"
+                    f"MERGE INTO {RESULTS_TABLE} t "
+                    f"USING (SELECT {gid} AS ID, {home} AS HOME_TEAM_GOALS, {away} AS AWAY_TEAM_GOALS) s "
+                    f"ON t.ID = s.ID "
+                    f"WHEN MATCHED THEN UPDATE SET t.HOME_TEAM_GOALS = s.HOME_TEAM_GOALS, t.AWAY_TEAM_GOALS = s.AWAY_TEAM_GOALS "
+                    f"WHEN NOT MATCHED THEN INSERT (ID, HOME_TEAM_GOALS, AWAY_TEAM_GOALS) VALUES (s.ID, s.HOME_TEAM_GOALS, s.AWAY_TEAM_GOALS)"
                 ).collect()
             st.success(f"{len(parsed)} tulosta tallennettu.")
             st.rerun()
