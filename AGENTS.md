@@ -1,6 +1,6 @@
 # Project Overview
 
-Internal ice hockey prediction competition tied to the **2026 IIHF World Championship** (Zurich & Fribourg, May 15–26). Users predict scores for all 56 group stage games before the tournament starts; standings are computed as results come in.
+Internal ice hockey prediction competition tied to the **2026 IIHF World Championship** (Zurich & Fribourg, May 15–26). Users predict scores for all 56 group stage games before the tournament starts; standings are computed as results come in. **Prediction deadline: May 15, 2026 at 17:20 Finnish time (EEST)** — after this, predictions are locked.
 
 Runs as a **Streamlit in Snowflake (SiS) warehouse runtime** app. Each viewer gets a personal Streamlit server instance. The app uses Snowpark for all database access; there is no external backend.
 
@@ -117,7 +117,7 @@ https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependen
 
 ### Deploying files after changes
 
-Always DROP and recreate the app for fastest and most reliable deployment — avoids stale file issues.
+Upload changed files to the stage. The app picks up new files on the next viewer session — no need to drop or recreate the app object. **Do NOT drop the app** — the app URL is shared with end users and dropping would change it.
 
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -140,8 +140,12 @@ PUT file:///path/to/assets/ioag9w7poe8ayrodgmlc.webp @MM_KISAVEIKKAUS_STAGE/asse
 
 -- Dependencies (only when environment.yml changes)
 PUT file:///path/to/environment.yml @MM_KISAVEIKKAUS_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+```
 
--- Drop previous version and recreate
+Only drop and recreate the app as a last resort (e.g., the app is completely broken and won't start). This changes the app URL and breaks existing bookmarks/shared links:
+
+```sql
+-- LAST RESORT ONLY — changes the app URL
 DROP STREAMLIT MM_KISAVEIKKAUS_APP;
 
 CREATE STREAMLIT MM_KISAVEIKKAUS_APP
@@ -158,7 +162,7 @@ Schema and data migrations live in `RELEASE_NOTES.md` under the corresponding ve
 
 1. **Run the migration SQL first** (as `ACCOUNTADMIN` in a Snowflake worksheet) — see `RELEASE_NOTES.md`.
 2. **Verify** the sanity-check counts return `0`.
-3. **Then deploy the code** via the `PUT` + `DROP STREAMLIT` + `CREATE STREAMLIT` block above.
+3. **Then deploy the code** via the `PUT` block above.
 
 If you deploy the code first, the running app will still query the old (un-migrated) values and most lookups (e.g. `_FLAGS.get(...)`, `MATCH_TRIVIA.get(...)`) will silently miss — flags disappear, trivia stops rendering, playoff defaults don't pre-populate.
 
@@ -179,7 +183,7 @@ The full SQL is in `RELEASE_NOTES.md` under **v1.2.0 → Database migration requ
 
 1. Update `mock_session.py` `GROUP_A`/`GROUP_B` to Finnish (already done in v1.2.0 commit) so local dev matches.
 2. Restart any running local Streamlit server — `trivia.py` and `mock_session.py` are imported modules and won't hot-reload (see Local Development below).
-3. Deploy the new code via `DROP STREAMLIT` + `CREATE STREAMLIT`.
+3. Deploy the new code via the `PUT` block above.
 
 Translation map (single source of truth — keep in sync with `_FLAGS` in the page modules and the migration SQL):
 
