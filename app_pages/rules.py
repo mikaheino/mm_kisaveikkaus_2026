@@ -56,18 +56,6 @@ st.markdown(
 
 st.divider()
 
-st.header("Osallistumismaksu")
-st.write("20 euroa per osallistuja. Maksu tulee suorittaa ennen ensimm\u00e4ist\u00e4 ottelua.")
-
-st.divider()
-
-st.header("Palkinnonjako")
-st.write("1. sija: **60 %**")
-st.write("2. sija: **30 %**")
-st.write("3. sija: **10 %**")
-
-st.divider()
-
 st.header("Pudotuspeliveikkaukset")
 st.write(
     "Alkulohkon tulosten lis\u00e4ksi veikataan pudotuspelikierrosten joukkueet, "
