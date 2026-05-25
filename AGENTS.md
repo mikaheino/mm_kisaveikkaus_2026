@@ -6,6 +6,17 @@ Runs as a **Streamlit in Snowflake (SiS) warehouse runtime** app. Each viewer ge
 
 ---
 
+# Streamlit-in-Snowflake template repositories
+
+This repo is the **warehouse runtime** template. When starting a new SiS project, clone whichever of these matches the runtime you need — both are canonical, working references:
+
+| Runtime | Template repository | Use when |
+|---|---|---|
+| **Warehouse runtime** (this repo) | https://github.com/mikaheino/mm_kisaveikkaus_2026 | You want the simpler infra path — no compute pool, no EAI, conda deps via `environment.yml`, per-viewer instance model. CCv2 custom components are stripped by the warehouse frontend allowlist. |
+| **Container runtime** | https://github.com/mikaheino/fifa_kisaveikkaus_2026 | You need CCv2 custom components, full pip/PyPI dependency control via `pyproject.toml`, or thread-safe shared caching. Requires a compute pool and an External Access Integration for PyPI. Preferred default for new projects unless warehouse-runtime simplicity is the goal. |
+
+---
+
 # Directory Structure
 
 ```
