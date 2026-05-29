@@ -205,9 +205,11 @@ class MockSession:
 
         # ── SELECT playoff predictions ──────────────────────────────────
         if "PLAYOFF_PREDICTIONS" in q:
-            email = query.split("'")[1].lower() if "'" in query else MOCK_CURRENT_USER
-            filtered = _PLAYOFF_DF[_PLAYOFF_DF["USER_EMAIL"] == email]
-            return _MockResult(filtered.copy())
+            if "WHERE" in q and "'" in query:
+                email = query.split("'")[1].lower()
+                filtered = _PLAYOFF_DF[_PLAYOFF_DF["USER_EMAIL"] == email]
+                return _MockResult(filtered.copy())
+            return _MockResult(_PLAYOFF_DF.copy())
 
         # ── DELETE predictions ──────────────────────────────────────────
         if "DELETE" in q and "MM_KISAVEIKKAUS_PREDICTIONS" in q:
